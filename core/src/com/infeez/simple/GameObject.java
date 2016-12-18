@@ -46,6 +46,14 @@ public abstract class GameObject {
         return rectangle;
     }
 
+    public Texture getTexture() {
+        return texture;
+    }
+
+    public TextureRegion getTextureRegion() {
+        return textureRegion;
+    }
+
     public void setX(float x){
         rectangle.setX(x);
     }
@@ -90,7 +98,7 @@ public abstract class GameObject {
     }
 
     public boolean contains(GameObject gameObject){
-        return this.rectangle.contains(gameObject.getRectangle());
+        return this.rectangle.contains(gameObject.getX(), gameObject.getY());
     }
 
     public boolean contains(int x, int y){

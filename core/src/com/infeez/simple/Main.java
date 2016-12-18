@@ -1,6 +1,5 @@
 package com.infeez.simple;
 
-import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import org.slf4j.Logger;
@@ -24,6 +23,7 @@ public class Main extends CheckerApplication {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
 		board.draw();
+		board.update();
 		batch.end();
 	}
 

@@ -9,6 +9,8 @@ public class Cell extends GameObject {
 
     private WorldType type;
 
+    private Checker checker;
+
     public Cell(float x, float y, WorldType type, SpriteBatch batch){
         super(ResourceSingleton.getUniqueId(), x, y, CELL_SIZE, CELL_SIZE, batch);
         this.type = type;
@@ -21,6 +23,31 @@ public class Cell extends GameObject {
             textureRegion = ResourceSingleton.getWhiteCell();
         }
         setTextureRegion(textureRegion);
+    }
+
+    public Checker getChecker(){
+        return checker;
+    }
+
+    public boolean isChecker(){
+        return checker != null;
+    }
+
+    public void setChecker(WorldType type) {
+        this.checker = new Checker(getX(), getY(), type, batch);
+    }
+
+    public WorldType removeChecker(){
+        WorldType worldType = checker.getType();
+        this.checker = null;
+        return worldType;
+    }
+
+    public void drawChecker() {
+        if(checker == null) {
+            return;
+        }
+        batch.draw(checker.getTextureRegion(), checker.getX(), checker.getY(), checker.getWidth(), checker.getHeight());
 
     }
 
@@ -31,6 +58,15 @@ public class Cell extends GameObject {
     public String toString() {
         return "Cell{" +
                 "type=" + type +
+                ", checker=" + checker +
                 '}' + '\n' + "from "+ super.toString();
+    }
+
+    public void captureChecker(int x, int y) {
+        if(checker == null){
+            return;
+        }
+        checker.setX(x);
+        checker.setY(y);
     }
 }

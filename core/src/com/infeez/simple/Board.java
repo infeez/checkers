@@ -11,14 +11,16 @@ public class Board extends GameObject implements PCInputProcessor {
 
     private final Cells cells = new Cells();
 
-    public Board(SpriteBatch spriteBatch){
+    private static boolean clicked = false;
+
+    public Board(SpriteBatch spriteBatch) {
         super(0, 0, 0, 400, 400, spriteBatch);
     }
 
-    public void create(){
+    public void create() {
         float x = 0, y = 0;
-        for(int i = 0; i < Cells.COUNT_CELL; i++){
-            for(int j = 0; j < Cells.COUNT_CELL; j++){
+        for (int i = 0; i < Cells.COUNT_CELL; i++) {
+            for (int j = 0; j < Cells.COUNT_CELL; j++) {
                 WorldType type = WorldType.BLACK;
                 if ((j % 2 == 1 && i % 2 == 1) || (j % 2 == 0 && i % 2 == 0)) {
                     type = WorldType.WHITE;
@@ -30,33 +32,49 @@ public class Board extends GameObject implements PCInputProcessor {
             x = 0;
             y += Cell.CELL_SIZE;
         }
+
+        cells.getCell(1, 1).setChecker(WorldType.WHITE);
     }
 
-    public void draw(){
+    public void draw() {
         cells.forEach(GameObject::draw);
+        cells.forEach(Cell::drawChecker);
     }
 
-    public void update(){
-
+    public void update() {
+        cells.forEach(GameObject::update);
     }
 
     public void dispose() {
         cells.forEach(GameObject::dispose);
     }
 
-    public void mouseMove(int x, int y) {
-
-    }
-
-    public void mouseDown(int x, int y, int pointer, MouseButton button) {
+    public void mouseClickMove(int x, int y) {
         cells.forEach(cell -> {
-            if(cell.contains(x, y)){
-                logger.error(cell.toString() + " by mouse " + button);
+            if (cell.isChecker() && cell.contains(x, y)) {
+                cell.captureChecker(x, y);
+                clicked = true;
             }
         });
     }
 
-    public void mouseUp(int x, int y, int pointer, MouseButton button) {
+    public void mouseDown(int x, int y, int pointer, MouseButton button) {
+    }
 
+    public void mouseUp(int x, int y, int pointer, MouseButton button) {
+        if (clicked) {
+            WorldType type = null;
+            for (Cell cell : cells) {
+                if (cell.isChecker() && !cell.contains(x, y)) {
+                    type = cell.removeChecker();
+                }
+            }
+            for (Cell cell : cells) {
+                if (!cell.isChecker() && cell.contains(x, y) && type != null) {
+                    cell.setChecker(type);
+                }
+            }
+            clicked = false;
+        }
     }
 }

@@ -13,6 +13,10 @@ public class ResourceSingleton {
     private static TextureRegion blackCell;
     private static TextureRegion whiteCell;
 
+    private static Texture checkersTexture;
+    private static TextureRegion blackChecker;
+    private static TextureRegion whiteChecker;
+
     private static final Set<Integer> ids = new HashSet<>(1);
 
     public static Texture getCellsTexture(){
@@ -20,6 +24,13 @@ public class ResourceSingleton {
             cellsTexture = new Texture(Gdx.files.internal("core\\assets\\cells.jpg"));
         }
         return cellsTexture;
+    }
+
+    public static Texture getCheckersTexture(){
+        if(checkersTexture == null){
+            checkersTexture = new Texture(Gdx.files.internal("core\\assets\\checkers.png"));
+        }
+        return checkersTexture;
     }
 
     public static TextureRegion getBlackCell(){
@@ -34,6 +45,20 @@ public class ResourceSingleton {
             whiteCell = new TextureRegion(getCellsTexture(), 0, 0, 50, 50);
         }
         return whiteCell;
+    }
+
+    public static TextureRegion getBlackChecker(){
+        if(blackChecker == null){
+            blackChecker = new TextureRegion(getCheckersTexture(), 50, 0, 50, 50);
+        }
+        return blackChecker;
+    }
+
+    public static TextureRegion getWhiteChecker(){
+        if(whiteChecker == null){
+            whiteChecker = new TextureRegion(getCheckersTexture(), 0, 0, 50, 50);
+        }
+        return whiteChecker;
     }
 
     public static int getUniqueId(){

@@ -3,6 +3,8 @@ package com.infeez.simple;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public abstract class CheckerApplication extends ApplicationAdapter implements InputProcessor {
@@ -13,6 +15,9 @@ public abstract class CheckerApplication extends ApplicationAdapter implements I
     public void create () {
         Gdx.input.setInputProcessor(this);
         batch = new SpriteBatch();
+        OrthographicCamera cam = new OrthographicCamera();
+        cam.setToOrtho(true, 400, 400);
+        batch.setProjectionMatrix(cam.combined);
     }
 
     public boolean keyDown(int keycode) {
@@ -44,13 +49,13 @@ public abstract class CheckerApplication extends ApplicationAdapter implements I
     }
 
     public boolean touchDragged(int screenX, int screenY, int pointer) {
+        if(this.pcInputProcessor != null){
+            this.pcInputProcessor.mouseClickMove(screenX, screenY);
+        }
         return false;
     }
 
     public boolean mouseMoved(int screenX, int screenY) {
-        if(this.pcInputProcessor != null){
-            this.pcInputProcessor.mouseMove(screenX, screenY);
-        }
         return false;
     }
 
