@@ -24,14 +24,14 @@ public class ResourceSingleton {
 
     public static TextureRegion getBlackCell(){
         if(blackCell == null){
-            blackCell = new TextureRegion(getCellsTexture(), 0, 0, 50, 50);
+            blackCell = new TextureRegion(getCellsTexture(), 50, 0, 50, 50);
         }
         return blackCell;
     }
 
     public static TextureRegion getWhiteCell(){
         if(whiteCell == null){
-            whiteCell = new TextureRegion(getCellsTexture(), 50, 0, 50, 50);
+            whiteCell = new TextureRegion(getCellsTexture(), 0, 0, 50, 50);
         }
         return whiteCell;
     }
@@ -42,5 +42,12 @@ public class ResourceSingleton {
             return getUniqueId();
         }
         return rnd;
+    }
+
+    public static void dispose(){
+        if(cellsTexture == null) {
+            return;
+        }
+        cellsTexture.dispose();
     }
 }

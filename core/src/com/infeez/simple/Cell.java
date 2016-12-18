@@ -7,8 +7,11 @@ public class Cell extends GameObject {
 
     public static final float CELL_SIZE = 50;
 
+    private WorldType type;
+
     public Cell(float x, float y, WorldType type, SpriteBatch batch){
         super(ResourceSingleton.getUniqueId(), x, y, CELL_SIZE, CELL_SIZE, batch);
+        this.type = type;
         TextureRegion textureRegion;
         if (type.equals(WorldType.WHITE)) {
             textureRegion = ResourceSingleton.getWhiteCell();
@@ -21,4 +24,13 @@ public class Cell extends GameObject {
 
     }
 
+    public void dispose() {
+
+    }
+
+    public String toString() {
+        return "Cell{" +
+                "type=" + type +
+                '}' + '\n' + "from "+ super.toString();
+    }
 }

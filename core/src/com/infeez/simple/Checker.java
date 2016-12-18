@@ -20,8 +20,7 @@ public class Checker extends GameObject {
         setTextureRegion(textureRegion);
     }
 
+    public void dispose() {
 
-
-
-
+    }
 }

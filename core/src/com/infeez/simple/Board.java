@@ -1,28 +1,30 @@
 package com.infeez.simple;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Random;
 
-public class Board {
+public class Board extends GameObject implements PCInputProcessor {
 
-    int COUNT_CELL = 8;
-    Cell[][] cells = new Cell[COUNT_CELL][COUNT_CELL];
-    SpriteBatch spriteBatch;
+    private static final Logger logger = LoggerFactory.getLogger(Board.class);
+
+    private final Cells cells = new Cells();
 
     public Board(SpriteBatch spriteBatch){
-        this.spriteBatch = spriteBatch;
+        super(0, 0, 0, 400, 400, spriteBatch);
     }
 
     public void create(){
         float x = 0, y = 0;
-        for(int i = 0; i < COUNT_CELL; i++){
-            for(int j = 0; j < COUNT_CELL; j++){
+        for(int i = 0; i < Cells.COUNT_CELL; i++){
+            for(int j = 0; j < Cells.COUNT_CELL; j++){
                 WorldType type = WorldType.BLACK;
                 if ((j % 2 == 1 && i % 2 == 1) || (j % 2 == 0 && i % 2 == 0)) {
                     type = WorldType.WHITE;
                 }
-                cells[i][j] = new Cell(x, y, type, spriteBatch);
+                Cell cell = new Cell(x, y, type, batch);
+                cells.setCell(cell, i, j);
                 x += Cell.CELL_SIZE;
             }
             x = 0;
@@ -31,16 +33,30 @@ public class Board {
     }
 
     public void draw(){
-        for (Cell[] x: cells) {
-            for (Cell y: x) {
-                y.draw();
-
-            }
-        }
+        cells.forEach(GameObject::draw);
     }
 
     public void update(){
 
     }
 
+    public void dispose() {
+        cells.forEach(GameObject::dispose);
+    }
+
+    public void mouseMove(int x, int y) {
+
+    }
+
+    public void mouseDown(int x, int y, int pointer, MouseButton button) {
+        cells.forEach(cell -> {
+            if(cell.contains(x, y)){
+                logger.error(cell.toString() + " by mouse " + button);
+            }
+        });
+    }
+
+    public void mouseUp(int x, int y, int pointer, MouseButton button) {
+
+    }
 }

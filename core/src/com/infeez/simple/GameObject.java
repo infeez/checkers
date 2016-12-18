@@ -10,9 +10,9 @@ public abstract class GameObject {
 
     private int id;
     private Rectangle rectangle;
-    private SpriteBatch batch;
     private Texture texture;
     private TextureRegion textureRegion;
+    protected SpriteBatch batch;
 
     public GameObject(int id, float x, float y,
                       float width, float height,
@@ -87,7 +87,26 @@ public abstract class GameObject {
     }
 
     public void update(){
-
     }
 
+    public boolean contains(GameObject gameObject){
+        return this.rectangle.contains(gameObject.getRectangle());
+    }
+
+    public boolean contains(int x, int y){
+        return this.rectangle.contains(x, y);
+    }
+
+    public void dispose() {
+        if(texture == null) {
+            return;
+        }
+        texture.dispose();
+    }
+
+    public String toString() {
+        return "GameObject{" +
+                "id=" + id +
+                '}';
+    }
 }
