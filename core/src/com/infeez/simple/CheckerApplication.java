@@ -34,23 +34,21 @@ public abstract class CheckerApplication extends ApplicationAdapter implements I
 
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if(this.pcInputProcessor != null){
-            this.pcInputProcessor.mouseDown(screenX, screenY, pointer, button == 1
-                    ? PCInputProcessor.MouseButton.RIGHT : PCInputProcessor.MouseButton.LEFT);
+            this.pcInputProcessor.mouseDown(screenX, screenY, pointer, button);
         }
         return false;
     }
 
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if(this.pcInputProcessor != null){
-            this.pcInputProcessor.mouseUp(screenX, screenY, pointer, button == 1
-                    ? PCInputProcessor.MouseButton.RIGHT : PCInputProcessor.MouseButton.LEFT);
+            this.pcInputProcessor.mouseUp(screenX, screenY, pointer, button);
         }
         return false;
     }
 
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         if(this.pcInputProcessor != null){
-            this.pcInputProcessor.mouseClickMove(screenX, screenY);
+            this.pcInputProcessor.mouseDrag(screenX, screenY);
         }
         return false;
     }

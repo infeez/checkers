@@ -14,7 +14,7 @@ public class Board extends GameObject implements PCInputProcessor {
 
     private final Cells cells = new Cells();
 
-    private static boolean clicked = false;
+    private static boolean dragged = false;
 
     public Board(SpriteBatch spriteBatch) {
         super(0, 0, 0, 400, 400, spriteBatch);
@@ -52,32 +52,38 @@ public class Board extends GameObject implements PCInputProcessor {
         cells.forEach(GameObject::dispose);
     }
 
-    public void mouseClickMove(int x, int y) {
+    public void mouseDrag(int x, int y) {
         cells.forEach(cell -> {
             if (cell.isChecker() && cell.contains(x, y)) {
                 cell.captureChecker(x, y);
-                clicked = true;
+                dragged = true;
             }
         });
     }
 
-    public void mouseDown(int x, int y, int pointer, MouseButton button) {
+    public void mouseDown(int x, int y, int pointer, int mouseButton) {
     }
 
-    public void mouseUp(int x, int y, int pointer, MouseButton button) {
-        if (clicked) {
-            WorldType type = null;
-            for (Cell cell : cells) {
-                if (cell.isChecker() && !cell.contains(x, y)) {
-                    type = cell.removeChecker();
-                }
-            }
-            for (Cell cell : cells) {
-                if (!cell.isChecker() && cell.contains(x, y) && type != null) {
-                    cell.setChecker(type);
-                }
-            }
-            clicked = false;
+    public void mouseUp(int x, int y, int pointer, int mouseButton) {
+        if (!dragged) {
+            return;
         }
+        WorldType type = null;
+        for (Cell cell : cells) {
+            if (cell.isChecker() && !cell.contains(x, y)) {
+                type = cell.removeChecker();
+                break;
+            }
+        }
+        if(type == null){
+            return;
+        }
+        for (Cell cell : cells) {
+            if (!cell.isChecker() && cell.contains(x, y)) {
+                cell.setChecker(type);
+                break;
+            }
+        }
+        dragged = false;
     }
 }

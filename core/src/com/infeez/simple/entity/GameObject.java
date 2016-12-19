@@ -1,6 +1,5 @@
 package com.infeez.simple.entity;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
@@ -10,7 +9,6 @@ public abstract class GameObject {
 
     private int id;
     private Rectangle rectangle;
-    private Texture texture;
     private TextureRegion textureRegion;
     protected SpriteBatch batch;
 
@@ -46,10 +44,6 @@ public abstract class GameObject {
         return rectangle;
     }
 
-    public Texture getTexture() {
-        return texture;
-    }
-
     public TextureRegion getTextureRegion() {
         return textureRegion;
     }
@@ -78,38 +72,28 @@ public abstract class GameObject {
         this.textureRegion = textureRegion;
     }
 
-    public void setTexture(@NotNull Texture texture){
-        this.texture = texture;
-    }
-
     public void draw(){
         if(batch == null){
             return;
         }
-        if(texture != null && textureRegion == null){
-            batch.draw(texture, getX(), getY(), getWidth(), getHeight());
+        if(textureRegion == null) {
+            return;
         }
-        if(textureRegion != null && texture == null){
-            batch.draw(textureRegion, getX(), getY(), getWidth(), getHeight());
-        }
+        batch.draw(textureRegion, getX(), getY(), getWidth(), getHeight());
     }
 
     public void update(){
     }
 
     public boolean contains(GameObject gameObject){
-        return this.rectangle.contains(gameObject.getX(), gameObject.getY());
+        return contains(gameObject.getX(), gameObject.getY());
     }
 
-    public boolean contains(int x, int y){
+    public boolean contains(float x, float y){
         return this.rectangle.contains(x, y);
     }
 
     public void dispose() {
-        if(texture == null) {
-            return;
-        }
-        texture.dispose();
     }
 
     public String toString() {
