@@ -2,6 +2,7 @@ package com.infeez.simple;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
+import com.infeez.simple.entity.Board;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

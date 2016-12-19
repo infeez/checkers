@@ -1,6 +1,9 @@
-package com.infeez.simple;
+package com.infeez.simple.entity;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.infeez.simple.Cells;
+import com.infeez.simple.input.PCInputProcessor;
+import com.infeez.simple.WorldType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

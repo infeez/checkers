@@ -1,7 +1,9 @@
-package com.infeez.simple;
+package com.infeez.simple.entity;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.infeez.simple.ResourceSingleton;
+import com.infeez.simple.WorldType;
 
 public class Cell extends GameObject {
 

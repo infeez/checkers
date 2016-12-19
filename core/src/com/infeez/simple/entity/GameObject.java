@@ -1,4 +1,4 @@
-package com.infeez.simple;
+package com.infeez.simple.entity;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;

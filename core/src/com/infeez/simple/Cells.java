@@ -1,5 +1,7 @@
 package com.infeez.simple;
 
+import com.infeez.simple.entity.Cell;
+
 import java.util.*;
 import java.util.function.Consumer;
 

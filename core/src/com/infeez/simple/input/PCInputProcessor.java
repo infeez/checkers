@@ -1,4 +1,4 @@
-package com.infeez.simple;
+package com.infeez.simple.input;
 
 public interface PCInputProcessor {
 

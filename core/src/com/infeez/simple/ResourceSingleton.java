@@ -21,14 +21,14 @@ public class ResourceSingleton {
 
     public static Texture getCellsTexture(){
         if(cellsTexture == null){
-            cellsTexture = new Texture(Gdx.files.internal("core\\assets\\cells.jpg"));
+            cellsTexture = new Texture(Gdx.files.internal("cells.jpg"));
         }
         return cellsTexture;
     }
 
     public static Texture getCheckersTexture(){
         if(checkersTexture == null){
-            checkersTexture = new Texture(Gdx.files.internal("core\\assets\\checkers.png"));
+            checkersTexture = new Texture(Gdx.files.internal("checkers.png"));
         }
         return checkersTexture;
     }
