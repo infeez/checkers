@@ -47,4 +47,11 @@ public class CheckerPosition {
         result = 31 * result + indexSecond;
         return result;
     }
+
+    public String toString() {
+        return "CheckerPosition{" +
+                "indexFirst=" + indexFirst +
+                ", indexSecond=" + indexSecond +
+                '}';
+    }
 }

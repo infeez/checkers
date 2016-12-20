@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.sun.istack.internal.NotNull;
 
+import java.util.Objects;
+
 public abstract class GameObject {
 
     private int id;
@@ -100,5 +102,20 @@ public abstract class GameObject {
         return "GameObject{" +
                 "id=" + id +
                 '}';
+    }
+
+    public GameObject cloneGameObject() {
+        throw new IllegalStateException("Need override!");
+    }
+
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GameObject that = (GameObject) o;
+        return id == that.id;
+    }
+
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
