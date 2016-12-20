@@ -1,14 +1,14 @@
 package com.infeez.simple.utils;
 
-public class CheckerPosition {
+public class BoardArrayPosition {
 
     private int indexFirst;
     private int indexSecond;
 
-    public CheckerPosition(){
+    public BoardArrayPosition(){
     }
 
-    public CheckerPosition(int indexFirst, int indexSecond) {
+    public BoardArrayPosition(int indexFirst, int indexSecond) {
         this.indexFirst = indexFirst;
         this.indexSecond = indexSecond;
     }
@@ -29,16 +29,16 @@ public class CheckerPosition {
         this.indexSecond = indexSecond;
     }
 
-    public void set(CheckerPosition checkerPosition){
-        setIndexFirst(checkerPosition.getIndexFirst());
-        setIndexSecond(checkerPosition.getIndexSecond());
+    public void set(BoardArrayPosition boardArrayPosition){
+        setIndexFirst(boardArrayPosition.getIndexFirst());
+        setIndexSecond(boardArrayPosition.getIndexSecond());
     }
 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CheckerPosition that = (CheckerPosition) o;
+        BoardArrayPosition that = (BoardArrayPosition) o;
         return indexFirst == that.indexFirst && indexSecond == that.indexSecond;
     }
 
@@ -49,7 +49,7 @@ public class CheckerPosition {
     }
 
     public String toString() {
-        return "CheckerPosition{" +
+        return "BoardArrayPosition{" +
                 "indexFirst=" + indexFirst +
                 ", indexSecond=" + indexSecond +
                 '}';

@@ -8,13 +8,13 @@ public class BoardCommandUtilTest {
 
     @Test
     public void testParse(){
-        CheckerPosition checkerPosition = BoardCommandUtil.parseCommand("a1");
-        assertTrue(checkerPosition.getIndexFirst() == 0);
-        assertTrue(checkerPosition.getIndexSecond() == 7);
+        BoardArrayPosition boardArrayPosition = BoardCommandUtil.parseCommand("a1");
+        assertTrue(boardArrayPosition.getIndexFirst() == 0);
+        assertTrue(boardArrayPosition.getIndexSecond() == 7);
 
-        checkerPosition = BoardCommandUtil.parseCommand("g1");
-        assertTrue(checkerPosition.getIndexFirst() == 6);
-        assertTrue(checkerPosition.getIndexSecond() == 7);
+        boardArrayPosition = BoardCommandUtil.parseCommand("g1");
+        assertTrue(boardArrayPosition.getIndexFirst() == 6);
+        assertTrue(boardArrayPosition.getIndexSecond() == 7);
     }
 
 }

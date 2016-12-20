@@ -3,8 +3,8 @@ package com.infeez.simple.entity;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.infeez.simple.ResourceSingleton;
 import com.infeez.simple.base.GameSpriteBatch;
+import com.infeez.simple.utils.BoardArrayPosition;
 import com.infeez.simple.utils.BoardCommandUtil;
-import com.infeez.simple.utils.CheckerPosition;
 import com.infeez.simple.utils.Constants.GameEnvTypes;
 
 public class Cell extends GameObject {
@@ -38,8 +38,8 @@ public class Cell extends GameObject {
         return BoardCommandUtil.checkerPositionToCommand(getBoardPosition());
     }
 
-    public CheckerPosition getBoardPosition() {
-        return new CheckerPosition(arrayPosI, arrayPosJ);
+    public BoardArrayPosition getBoardPosition() {
+        return new BoardArrayPosition(arrayPosI, arrayPosJ);
     }
 
     public Checker getChecker() {

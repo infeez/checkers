@@ -28,27 +28,27 @@ public class BoardCommandUtil {
         yPanel.put('8', 0);
     }
 
-    public static CheckerPosition parseCommand(String command){
+    public static BoardArrayPosition parseCommand(String command){
         if(command.length() != 2){
             throw new IllegalStateException("The command string length must be 2!");
         }
-        CheckerPosition checkerPosition = new CheckerPosition();
-        checkerPosition.setIndexFirst(xPanel.get(command.charAt(0)));
-        checkerPosition.setIndexSecond(yPanel.get(command.charAt(1)));
-        return checkerPosition;
+        BoardArrayPosition boardArrayPosition = new BoardArrayPosition();
+        boardArrayPosition.setIndexFirst(xPanel.get(command.charAt(0)));
+        boardArrayPosition.setIndexSecond(yPanel.get(command.charAt(1)));
+        return boardArrayPosition;
     }
 
-    public static String checkerPositionToCommand(CheckerPosition checkerPosition){
+    public static String checkerPositionToCommand(BoardArrayPosition boardArrayPosition){
         String result = "";
         for(Map.Entry<Character, Integer> entry : xPanel.entrySet()){
-            if(entry.getValue() == checkerPosition.getIndexFirst()){
+            if(entry.getValue() == boardArrayPosition.getIndexFirst()){
                 result += entry.getKey();
                 break;
             }
         }
 
         for(Map.Entry<Character, Integer> entry : yPanel.entrySet()){
-            if(entry.getValue() == checkerPosition.getIndexSecond()){
+            if(entry.getValue() == boardArrayPosition.getIndexSecond()){
                 result += entry.getKey();
                 break;
             }

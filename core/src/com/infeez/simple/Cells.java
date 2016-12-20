@@ -3,7 +3,7 @@ package com.infeez.simple;
 import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.entity.Cell;
 import com.infeez.simple.entity.Checker;
-import com.infeez.simple.utils.CheckerPosition;
+import com.infeez.simple.utils.BoardArrayPosition;
 import com.infeez.simple.utils.Constants.GameEnvTypes;
 
 import java.util.*;
@@ -68,8 +68,8 @@ public class Cells implements Iterable<Cell> {
         return toList().spliterator();
     }
 
-    public Cell getCell(CheckerPosition checkerPosition){
-        return getCell(checkerPosition.getIndexFirst(), checkerPosition.getIndexSecond());
+    public Cell getCell(BoardArrayPosition boardArrayPosition){
+        return getCell(boardArrayPosition.getIndexFirst(), boardArrayPosition.getIndexSecond());
     }
 
     public Cell getCell(int i, int j){

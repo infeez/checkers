@@ -5,7 +5,7 @@ import com.infeez.simple.ResourceSingleton;
 import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.input.PCInputProcessor;
 import com.infeez.simple.utils.BoardCommandUtil;
-import com.infeez.simple.utils.CheckerPosition;
+import com.infeez.simple.utils.BoardArrayPosition;
 import com.infeez.simple.utils.Constants.GameEnvTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,8 +79,8 @@ public class Board extends GameObject implements PCInputProcessor {
     }
 
     public void moveChecker(String from, String to){
-        CheckerPosition chPosFrom = BoardCommandUtil.parseCommand(from);
-        CheckerPosition chPosTo = BoardCommandUtil.parseCommand(to);
+        BoardArrayPosition chPosFrom = BoardCommandUtil.parseCommand(from);
+        BoardArrayPosition chPosTo = BoardCommandUtil.parseCommand(to);
         if(chPosFrom == null || chPosTo == null){
             return;
         }
