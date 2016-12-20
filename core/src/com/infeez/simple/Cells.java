@@ -14,8 +14,9 @@ import java.util.stream.StreamSupport;
 
 public class Cells implements Iterable<Cell> {
 
-    public static final int COUNT_CELL = 8;
-    private Cell[][] cells = new Cell[COUNT_CELL][COUNT_CELL];
+    private static final int COUNT_CELL = 8;
+    private final Cell[][] cells = new Cell[COUNT_CELL][COUNT_CELL];
+    private final Object mutex = new Object();
 
     public Cells(){
     }
@@ -38,6 +39,7 @@ public class Cells implements Iterable<Cell> {
     }
 
     public void startCellsPosition(){
+        clearCheckers();
         for (int i = 0; i < COUNT_CELL; i++) {
             for (int j = 0; j < COUNT_CELL; j++) {
                 if(i <= 2 && cells[i][j].isBlackType()){
@@ -54,9 +56,11 @@ public class Cells implements Iterable<Cell> {
     }
 
     public void forEach(Consumer<? super Cell> action) {
-        for (Cell[] c1 : cells) {
-            for(Cell c2 : c1) {
-                action.accept(c2);
+        synchronized (mutex) {
+            for (Cell[] c1 : cells) {
+                for (Cell c2 : c1) {
+                    action.accept(c2);
+                }
             }
         }
     }
@@ -70,21 +74,33 @@ public class Cells implements Iterable<Cell> {
     }
 
     public Cell getCell(int i, int j){
-        return cells[i][j];
+        synchronized (mutex) {
+            return cells[i][j];
+        }
     }
 
     public void setCell(Cell cell, int i, int j){
-        cells[i][j] = cell;
+        synchronized (mutex) {
+            cells[i][j] = cell;
+        }
     }
 
     public List<Cell> toList() {
-        List<Cell> list = new LinkedList<>();
-        forEach(list::add);
-        return list;
+        synchronized (mutex) {
+            List<Cell> list = new LinkedList<>();
+            forEach(list::add);
+            return list;
+        }
     }
 
     public Stream<Cell> stream(){
         return StreamSupport.stream(this.spliterator(), false);
+    }
+
+    public void clearCheckers(){
+        synchronized (mutex) {
+            forEach(Cell::removeChecker);
+        }
     }
 
     public Cell findCellByCoordinates(int x, int y){

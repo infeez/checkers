@@ -25,7 +25,6 @@ public class Board extends GameObject implements PCInputProcessor {
 
     public void create() {
         cells.createBoard(batch);
-        cells.startCellsPosition();
     }
 
     public void draw() {
@@ -94,5 +93,47 @@ public class Board extends GameObject implements PCInputProcessor {
 
         Cell cellTarget = cells.getCell(chPosTo);
         cellTarget.setChecker(checkToMove.getType());
+    }
+
+    public void startNewGame(){
+        cells.startCellsPosition();
+        new Thread(() -> {
+            boolean haveWinner = false;
+            while (!haveWinner) {
+                try {
+                    haveWinner = haveWinner();
+                    if(haveWinner){
+                        startNewGame();
+                    }
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private boolean haveWinner(){
+        int whiteCount = 0;
+        int blackCount = 0;
+        for(Cell cell : cells){
+            if(cell.getChecker() == null){
+                continue;
+            }
+            if(cell.getChecker().isBlackType()){
+                blackCount++;
+            } else if(cell.getChecker().isWhiteType()){
+                whiteCount++;
+            }
+        }
+        if(whiteCount == 0){
+            System.out.println("White winner!");
+            return true;
+        }
+        if(blackCount == 0){
+            System.out.println("Black winner!");
+            return true;
+        }
+        return false;
     }
 }

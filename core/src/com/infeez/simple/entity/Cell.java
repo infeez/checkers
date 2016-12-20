@@ -63,6 +63,9 @@ public class Cell extends GameObject {
     }
 
     public GameEnvTypes removeChecker() {
+        if(checker == null){
+            return null;
+        }
         GameEnvTypes worldType = checker.getType();
         this.checker = null;
         return worldType;
@@ -73,7 +76,6 @@ public class Cell extends GameObject {
             return;
         }
         batch.draw(checker.getTextureRegion(), checker.getX(), checker.getY(), checker.getWidth(), checker.getHeight());
-
     }
 
     public String toString() {

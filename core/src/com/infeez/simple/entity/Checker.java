@@ -32,6 +32,14 @@ public class Checker extends GameObject {
         setTextureRegion(textureRegion);
     }
 
+    public boolean isBlackType() {
+        return type.equals(GameEnvTypes.BLACK);
+    }
+
+    public boolean isWhiteType() {
+        return type.equals(GameEnvTypes.WHITE);
+    }
+
     public String getBoardStringPosition(){
         return BoardCommandUtil.checkerPositionToCommand(getBoardPosition());
     }

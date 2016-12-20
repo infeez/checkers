@@ -15,6 +15,7 @@ public class Main extends CheckerApplication {
 		super.create();
 		board = new Board(batch);
 		board.create();
+		board.startNewGame();
 		setPCInputProcessor(board);
 	}
 
