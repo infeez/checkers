@@ -18,7 +18,7 @@ public abstract class CheckerApplication extends ApplicationAdapter implements I
         Gdx.input.setInputProcessor(this);
         batch = new GameSpriteBatch();
         cam = new OrthographicCamera();
-        cam.setToOrtho(true, 400, 400);
+        cam.setToOrtho(true, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.setProjectionMatrix(cam.combined);
     }
 

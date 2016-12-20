@@ -9,6 +9,8 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = 400;
 		config.height = 400;
+		config.resizable = false;
+		config.title = "Checkers";
 		new LwjglApplication(new Main(), config);
 	}
 }
