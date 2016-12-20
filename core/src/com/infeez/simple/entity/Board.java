@@ -1,5 +1,6 @@
 package com.infeez.simple.entity;
 
+import com.badlogic.gdx.Gdx;
 import com.infeez.simple.Cells;
 import com.infeez.simple.ResourceSingleton;
 import com.infeez.simple.base.GameSpriteBatch;
@@ -20,7 +21,7 @@ public class Board extends GameObject implements PCInputProcessor {
     private Cell cellForDrag;
 
     public Board(GameSpriteBatch spriteBatch) {
-        super(ResourceSingleton.getUniqueId(), 0, 0, 400, 400, spriteBatch);
+        super(ResourceSingleton.getUniqueId(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), spriteBatch);
     }
 
     public void create() {

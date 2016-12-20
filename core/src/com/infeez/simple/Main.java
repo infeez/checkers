@@ -1,7 +1,7 @@
 package com.infeez.simple;
 
 import com.infeez.simple.base.CheckerApplication;
-import com.infeez.simple.entity.Board;
+import com.infeez.simple.screens.GameScreen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,24 +9,15 @@ public class Main extends CheckerApplication {
 
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	private Board board;
+	private GameScreen gameScreen;
 
 	public void create () {
 		super.create();
-		board = new Board(batch);
-		board.create();
-		board.startNewGame();
-		setPCInputProcessor(board);
-	}
-
-	protected void boardRender() {
-		board.draw();
-		board.update();
+		gameScreen = new GameScreen(this);
+		setScreen(gameScreen);
 	}
 
 	public void dispose () {
-		batch.dispose();
-		board.dispose();
 		ResourceSingleton.dispose();
 	}
 }
