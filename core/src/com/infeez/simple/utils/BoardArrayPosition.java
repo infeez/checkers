@@ -49,9 +49,7 @@ public class BoardArrayPosition {
     }
 
     public String toString() {
-        return "BoardArrayPosition{" +
-                "indexFirst=" + indexFirst +
-                ", indexSecond=" + indexSecond +
-                '}';
+        return BoardCommandUtil.checkerPositionToCommand(this);
     }
+
 }
