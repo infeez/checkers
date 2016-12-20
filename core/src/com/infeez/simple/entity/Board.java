@@ -2,8 +2,9 @@ package com.infeez.simple.entity;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.infeez.simple.Cells;
+import com.infeez.simple.ResourceSingleton;
 import com.infeez.simple.input.PCInputProcessor;
-import com.infeez.simple.WorldType;
+import com.infeez.simple.utils.Constants.GameEnvTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,29 +15,16 @@ public class Board extends GameObject implements PCInputProcessor {
 
     private final Cells cells = new Cells();
 
-    private static boolean dragged = false;
+    private boolean dragged = false;
 
     public Board(SpriteBatch spriteBatch) {
-        super(0, 0, 0, 400, 400, spriteBatch);
+        super(ResourceSingleton.getUniqueId(), 0, 0, 400, 400, spriteBatch);
     }
 
     public void create() {
-        float x = 0, y = 0;
-        for (int i = 0; i < Cells.COUNT_CELL; i++) {
-            for (int j = 0; j < Cells.COUNT_CELL; j++) {
-                WorldType type = WorldType.BLACK;
-                if ((j % 2 == 1 && i % 2 == 1) || (j % 2 == 0 && i % 2 == 0)) {
-                    type = WorldType.WHITE;
-                }
-                Cell cell = new Cell(x, y, type, batch);
-                cells.setCell(cell, i, j);
-                x += Cell.CELL_SIZE;
-            }
-            x = 0;
-            y += Cell.CELL_SIZE;
-        }
+        cells.createBoard(batch);
 
-        cells.getCell(1, 1).setChecker(WorldType.WHITE);
+        cells.getCell(1, 1).setChecker(GameEnvTypes.WHITE);
     }
 
     public void draw() {
@@ -54,7 +42,7 @@ public class Board extends GameObject implements PCInputProcessor {
 
     public void mouseDrag(int x, int y) {
         cells.forEach(cell -> {
-            if (cell.isChecker() && cell.contains(x, y)) {
+            if (cell.isChecker()) {
                 cell.captureChecker(x, y);
                 dragged = true;
             }
@@ -62,28 +50,35 @@ public class Board extends GameObject implements PCInputProcessor {
     }
 
     public void mouseDown(int x, int y, int pointer, int mouseButton) {
+        Checker checker = cells.findCheckerByCoords(x, y);
+        if(checker != null) {
+            logger.info(checker.toString());
+        }
     }
 
     public void mouseUp(int x, int y, int pointer, int mouseButton) {
         if (!dragged) {
             return;
         }
-        WorldType type = null;
+        GameEnvTypes type = null;
         for (Cell cell : cells) {
             if (cell.isChecker() && !cell.contains(x, y)) {
                 type = cell.removeChecker();
                 break;
             }
         }
-        if(type == null){
-            return;
-        }
-        for (Cell cell : cells) {
-            if (!cell.isChecker() && cell.contains(x, y)) {
-                cell.setChecker(type);
-                break;
+        if(type != null){
+            for (Cell cell : cells) {
+                if (!cell.isChecker() && cell.contains(x, y)) {
+                    cell.setChecker(type);
+                    break;
+                }
             }
         }
         dragged = false;
+    }
+
+    void moveChecker(){
+
     }
 }

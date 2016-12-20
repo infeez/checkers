@@ -1,4 +1,4 @@
-package com.infeez.simple;
+package com.infeez.simple.utils;
 
 public class CheckerPosition {
 

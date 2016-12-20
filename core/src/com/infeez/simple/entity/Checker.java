@@ -4,20 +4,20 @@ package com.infeez.simple.entity;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.infeez.simple.ResourceSingleton;
-import com.infeez.simple.WorldType;
+import com.infeez.simple.utils.Constants.*;
 
 public class Checker extends GameObject {
 
-    private WorldType type;
+    private GameEnvTypes type;
 
-    public Checker(float x, float y, WorldType type,
+    public Checker(float x, float y, GameEnvTypes type,
                    SpriteBatch batch) {
         super(ResourceSingleton.getUniqueId(), x, y, 50, 50, batch);
         this.type = type;
         TextureRegion textureRegion;
-        if (type.equals(WorldType.WHITE)) {
+        if (type.equals(GameEnvTypes.WHITE)) {
             textureRegion = ResourceSingleton.getWhiteChecker();
-        } else if (type.equals(WorldType.BLACK)) {
+        } else if (type.equals(GameEnvTypes.BLACK)) {
             textureRegion = ResourceSingleton.getBlackChecker();
         } else {
             textureRegion = ResourceSingleton.getWhiteChecker();
@@ -29,7 +29,7 @@ public class Checker extends GameObject {
 
     }
 
-    public WorldType getType() {
+    public GameEnvTypes getType() {
         return type;
     }
 }

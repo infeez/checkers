@@ -1,8 +1,9 @@
-package com.infeez.simple;
+package com.infeez.simple.base;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.infeez.simple.input.PCInputProcessor;
@@ -11,13 +12,25 @@ public abstract class CheckerApplication extends ApplicationAdapter implements I
 
     private PCInputProcessor pcInputProcessor;
     protected SpriteBatch batch;
+    protected OrthographicCamera cam;
 
     public void create () {
         Gdx.input.setInputProcessor(this);
         batch = new SpriteBatch();
-        OrthographicCamera cam = new OrthographicCamera();
+        cam = new OrthographicCamera();
         cam.setToOrtho(true, 400, 400);
         batch.setProjectionMatrix(cam.combined);
+    }
+
+    public void render () {
+        Gdx.gl.glClearColor(0, 0, 0, 0);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        if (cam != null) {
+            cam.update();
+        }
+        batch.begin();
+        boardRender();
+        batch.end();
     }
 
     public boolean keyDown(int keycode) {
@@ -64,4 +77,6 @@ public abstract class CheckerApplication extends ApplicationAdapter implements I
     protected void setPCInputProcessor(PCInputProcessor l){
         this.pcInputProcessor = l;
     }
+
+    protected abstract void boardRender();
 }

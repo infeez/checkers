@@ -1,7 +1,6 @@
 package com.infeez.simple;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
+import com.infeez.simple.base.CheckerApplication;
 import com.infeez.simple.entity.Board;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +18,9 @@ public class Main extends CheckerApplication {
 		setPCInputProcessor(board);
 	}
 
-	public void render () {
-		Gdx.gl.glClearColor(0, 0, 0, 0);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		batch.begin();
+	protected void boardRender() {
 		board.draw();
 		board.update();
-		batch.end();
 	}
 
 	public void dispose () {
