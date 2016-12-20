@@ -11,12 +11,12 @@ import com.infeez.simple.input.PCInputProcessor;
 public abstract class CheckerApplication extends ApplicationAdapter implements InputProcessor {
 
     private PCInputProcessor pcInputProcessor;
-    protected SpriteBatch batch;
+    protected GameSpriteBatch batch;
     protected OrthographicCamera cam;
 
     public void create () {
         Gdx.input.setInputProcessor(this);
-        batch = new SpriteBatch();
+        batch = new GameSpriteBatch();
         cam = new OrthographicCamera();
         cam.setToOrtho(true, 400, 400);
         batch.setProjectionMatrix(cam.combined);

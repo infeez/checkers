@@ -1,11 +1,10 @@
 package com.infeez.simple;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.entity.Cell;
 import com.infeez.simple.entity.Checker;
 import com.infeez.simple.utils.CheckerPosition;
-import com.infeez.simple.utils.Constants.*;
-
+import com.infeez.simple.utils.Constants.GameEnvTypes;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -21,7 +20,7 @@ public class Cells implements Iterable<Cell> {
     public Cells(){
     }
 
-    public void createBoard(SpriteBatch batch){
+    public void createBoard(GameSpriteBatch batch){
         float x = 0, y = 0;
         for (int i = 0; i < COUNT_CELL; i++) {
             for (int j = 0; j < COUNT_CELL; j++) {

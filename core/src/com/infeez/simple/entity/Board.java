@@ -1,8 +1,8 @@
 package com.infeez.simple.entity;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.infeez.simple.Cells;
 import com.infeez.simple.ResourceSingleton;
+import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.input.PCInputProcessor;
 import com.infeez.simple.utils.BoardCommandUtil;
 import com.infeez.simple.utils.CheckerPosition;
@@ -19,7 +19,7 @@ public class Board extends GameObject implements PCInputProcessor {
     private boolean dragged = false;
     private Cell cellForDrag;
 
-    public Board(SpriteBatch spriteBatch) {
+    public Board(GameSpriteBatch spriteBatch) {
         super(ResourceSingleton.getUniqueId(), 0, 0, 400, 400, spriteBatch);
     }
 
@@ -30,6 +30,7 @@ public class Board extends GameObject implements PCInputProcessor {
     public void draw() {
         cells.forEach(GameObject::draw);
         cells.forEach(Cell::drawChecker);
+        cells.forEach(Cell::drawCapturedChecker);
     }
 
     public void update() {

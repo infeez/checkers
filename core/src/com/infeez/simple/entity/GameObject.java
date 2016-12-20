@@ -1,8 +1,8 @@
 package com.infeez.simple.entity;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.infeez.simple.base.GameSpriteBatch;
 import com.sun.istack.internal.NotNull;
 
 import java.util.Objects;
@@ -12,11 +12,11 @@ public abstract class GameObject {
     private int id;
     private Rectangle rectangle;
     private TextureRegion textureRegion;
-    protected SpriteBatch batch;
+    protected GameSpriteBatch batch;
 
     public GameObject(int id, float x, float y,
                       float width, float height,
-                      SpriteBatch batch){
+                      GameSpriteBatch batch){
         this.id = id;
         this.batch = batch;
         this.rectangle = new Rectangle(x, y, width, height);
@@ -81,7 +81,7 @@ public abstract class GameObject {
         if(textureRegion == null) {
             return;
         }
-        batch.draw(textureRegion, getX(), getY(), getWidth(), getHeight());
+        batch.draw(this);
     }
 
     public void update(){

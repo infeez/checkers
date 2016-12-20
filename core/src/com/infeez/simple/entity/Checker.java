@@ -1,12 +1,12 @@
 package com.infeez.simple.entity;
 
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.infeez.simple.ResourceSingleton;
+import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.utils.BoardCommandUtil;
 import com.infeez.simple.utils.CheckerPosition;
-import com.infeez.simple.utils.Constants.*;
+import com.infeez.simple.utils.Constants.GameEnvTypes;
 
 public class Checker extends GameObject {
 
@@ -16,7 +16,7 @@ public class Checker extends GameObject {
 
     public Checker(CheckerPosition checkerPosition,
                    float x, float y, GameEnvTypes type,
-                   SpriteBatch batch) {
+                   GameSpriteBatch batch) {
         super(ResourceSingleton.getUniqueId(), x, y, 50, 50, batch);
         this.type = type;
         this.arrayPosI = checkerPosition.getIndexFirst();

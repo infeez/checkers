@@ -1,11 +1,11 @@
 package com.infeez.simple.entity;
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.infeez.simple.ResourceSingleton;
+import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.utils.BoardCommandUtil;
 import com.infeez.simple.utils.CheckerPosition;
-import com.infeez.simple.utils.Constants.*;
+import com.infeez.simple.utils.Constants.GameEnvTypes;
 
 public class Cell extends GameObject {
 
@@ -13,11 +13,12 @@ public class Cell extends GameObject {
 
     private GameEnvTypes type;
     private Checker checker;
+    private Checker capturedChecker;
     private int arrayPosI;
     private int arrayPosJ;
 
     public Cell(int arrayPosI, int arrayPosJ,
-                float x, float y, GameEnvTypes type, SpriteBatch batch) {
+                float x, float y, GameEnvTypes type, GameSpriteBatch batch) {
         super(ResourceSingleton.getUniqueId(), x, y, CELL_SIZE, CELL_SIZE, batch);
         this.type = type;
         this.arrayPosI = arrayPosI;
@@ -63,6 +64,7 @@ public class Cell extends GameObject {
     }
 
     public GameEnvTypes removeChecker() {
+        capturedChecker = null;
         if(checker == null){
             return null;
         }
@@ -75,7 +77,14 @@ public class Cell extends GameObject {
         if (checker == null) {
             return;
         }
-        batch.draw(checker.getTextureRegion(), checker.getX(), checker.getY(), checker.getWidth(), checker.getHeight());
+        batch.draw(checker);
+    }
+
+    public void drawCapturedChecker(){
+        if(capturedChecker == null) {
+            return;
+        }
+        batch.draw(capturedChecker);
     }
 
     public String toString() {
@@ -91,5 +100,6 @@ public class Cell extends GameObject {
         }
         checker.setX(x - CELL_SIZE / 2);
         checker.setY(y - CELL_SIZE / 2);
+        capturedChecker = checker;
     }
 }
