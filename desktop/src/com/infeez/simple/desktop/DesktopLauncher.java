@@ -10,7 +10,7 @@ public class DesktopLauncher {
 		config.width = 400;
 		config.height = 400;
 		config.resizable = false;
-		config.title = "Checkers";
+		config.title = "Checkers !";
 		new LwjglApplication(new Main(), config);
 	}
 }
