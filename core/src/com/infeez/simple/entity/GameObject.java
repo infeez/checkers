@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.infeez.simple.base.GameSpriteBatch;
 import com.sun.istack.internal.NotNull;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 
 public abstract class GameObject {
@@ -66,11 +67,11 @@ public abstract class GameObject {
         rectangle.setHeight(height);
     }
 
-    public void setRectangle(Rectangle rectangle){
+    public void setRectangle(@Nonnull Rectangle rectangle){
         rectangle.set(rectangle);
     }
 
-    public void setTextureRegion(@NotNull TextureRegion textureRegion){
+    public void setTextureRegion(@Nonnull TextureRegion textureRegion){
         this.textureRegion = textureRegion;
     }
 
@@ -87,7 +88,7 @@ public abstract class GameObject {
     public void update(){
     }
 
-    public boolean contains(GameObject gameObject){
+    public boolean contains(@Nonnull GameObject gameObject){
         return contains(gameObject.getX(), gameObject.getY());
     }
 

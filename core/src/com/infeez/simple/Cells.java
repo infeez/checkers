@@ -6,6 +6,7 @@ import com.infeez.simple.entity.Checker;
 import com.infeez.simple.utils.BoardArrayPosition;
 import com.infeez.simple.utils.Constants.GameEnvTypes;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -20,7 +21,7 @@ public class Cells implements Iterable<Cell> {
     public Cells(){
     }
 
-    public void createBoard(GameSpriteBatch batch){
+    public void createBoard(@Nonnull GameSpriteBatch batch){
         float x = 0, y = 0;
         for (int i = 0; i < COUNT_CELL; i++) {
             for (int j = 0; j < COUNT_CELL; j++) {
@@ -68,7 +69,7 @@ public class Cells implements Iterable<Cell> {
         return toList().spliterator();
     }
 
-    public Cell getCell(BoardArrayPosition boardArrayPosition){
+    public Cell getCell(@Nonnull BoardArrayPosition boardArrayPosition){
         return getCell(boardArrayPosition.getIndexFirst(), boardArrayPosition.getIndexSecond());
     }
 
@@ -78,7 +79,7 @@ public class Cells implements Iterable<Cell> {
         }
     }
 
-    public void setCell(Cell cell, int i, int j){
+    public void setCell(@Nonnull Cell cell, int i, int j){
         synchronized (mutex) {
             cells[i][j] = cell;
         }

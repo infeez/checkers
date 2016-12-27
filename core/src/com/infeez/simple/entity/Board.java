@@ -11,6 +11,8 @@ import com.infeez.simple.utils.Constants.GameEnvTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+
 
 public class Board extends GameObject implements PCInputProcessor {
 
@@ -20,7 +22,7 @@ public class Board extends GameObject implements PCInputProcessor {
     private boolean dragged = false;
     private Cell cellForDrag;
 
-    public Board(GameSpriteBatch spriteBatch) {
+    public Board(@Nonnull GameSpriteBatch spriteBatch) {
         super(ResourceSingleton.getUniqueId(), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), spriteBatch);
     }
 
@@ -79,7 +81,7 @@ public class Board extends GameObject implements PCInputProcessor {
         dragged = false;
     }
 
-    public void moveChecker(String from, String to){
+    public void moveChecker(@Nonnull String from, @Nonnull String to){
         BoardArrayPosition chPosFrom = BoardCommandUtil.parseCommand(from);
         BoardArrayPosition chPosTo = BoardCommandUtil.parseCommand(to);
         if(chPosFrom == null || chPosTo == null){
@@ -95,6 +97,14 @@ public class Board extends GameObject implements PCInputProcessor {
 
         Cell cellTarget = cells.getCell(chPosTo);
         cellTarget.setChecker(checkToMove.getType());
+    }
+
+    public void animateMoveChecker(@Nonnull String from, @Nonnull String to){
+        animateMoveChecker(BoardCommandUtil.parseCommand(from), BoardCommandUtil.parseCommand(to));
+    }
+
+    public void animateMoveChecker(@Nonnull BoardArrayPosition from, @Nonnull BoardArrayPosition to){
+
     }
 
     public void startNewGame(){
