@@ -39,22 +39,20 @@ public class BoardCommandUtil {
     }
 
     public static String checkerPositionToCommand(BoardArrayPosition boardArrayPosition){
-        String result = "";
-        for(Map.Entry<Character, Integer> entry : xPanel.entrySet()){
+        final StringBuilder result = new StringBuilder(2);
+        xPanel.entrySet().forEach(entry -> {
             if(entry.getValue() == boardArrayPosition.getIndexFirst()){
-                result += entry.getKey();
-                break;
+                result.append(entry.getKey());
             }
-        }
+        });
 
-        for(Map.Entry<Character, Integer> entry : yPanel.entrySet()){
+        yPanel.entrySet().forEach(entry -> {
             if(entry.getValue() == boardArrayPosition.getIndexSecond()){
-                result += entry.getKey();
-                break;
+                result.append(entry.getKey());
             }
-        }
+        });
 
-        return result;
+        return result.toString();
     }
 
 
