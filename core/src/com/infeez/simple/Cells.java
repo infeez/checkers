@@ -16,12 +16,11 @@ public class Cells implements Iterable<Cell> {
 
     private static final int COUNT_CELL = 8;
     private final Cell[][] cells = new Cell[COUNT_CELL][COUNT_CELL];
-    private final Object mutex = new Object();
 
-    public Cells(){
+    public Cells() {
     }
 
-    public void createBoard(@Nonnull GameSpriteBatch batch){
+    public void createBoard(@Nonnull GameSpriteBatch batch) {
         float x = 0, y = 0;
         for (int i = 0; i < COUNT_CELL; i++) {
             for (int j = 0; j < COUNT_CELL; j++) {
@@ -38,13 +37,13 @@ public class Cells implements Iterable<Cell> {
         }
     }
 
-    public void startCellsPosition(){
+    public void startCellsPosition() {
         clearCheckers();
         for (int i = 0; i < COUNT_CELL; i++) {
             for (int j = 0; j < COUNT_CELL; j++) {
-                if(i <= 2 && cells[i][j].isBlackType()){
+                if (i <= 2 && cells[i][j].isBlackType()) {
                     cells[i][j].setChecker(GameEnvTypes.BLACK);
-                } else if(i >= 5 && cells[i][j].isBlackType()){
+                } else if (i >= 5 && cells[i][j].isBlackType()) {
                     cells[i][j].setChecker(GameEnvTypes.WHITE);
                 }
             }
@@ -55,12 +54,10 @@ public class Cells implements Iterable<Cell> {
         return toList().iterator();
     }
 
-    public void forEach(Consumer<? super Cell> action) {
-        synchronized (mutex) {
-            for (Cell[] c1 : cells) {
-                for (Cell c2 : c1) {
-                    action.accept(c2);
-                }
+    public synchronized void forEach(Consumer<? super Cell> action) {
+        for (Cell[] c1 : cells) {
+            for (Cell c2 : c1) {
+                action.accept(c2);
             }
         }
     }
@@ -69,54 +66,46 @@ public class Cells implements Iterable<Cell> {
         return toList().spliterator();
     }
 
-    public Cell getCell(@Nonnull BoardArrayPosition boardArrayPosition){
+    public synchronized Cell getCell(@Nonnull BoardArrayPosition boardArrayPosition) {
         return getCell(boardArrayPosition.getIndexFirst(), boardArrayPosition.getIndexSecond());
     }
 
-    public Cell getCell(int i, int j){
-        synchronized (mutex) {
-            return cells[i][j];
-        }
+    public synchronized Cell getCell(int i, int j) {
+        return cells[i][j];
     }
 
-    public void setCell(@Nonnull Cell cell, int i, int j){
-        synchronized (mutex) {
-            cells[i][j] = cell;
-        }
+    public synchronized void setCell(@Nonnull Cell cell, int i, int j) {
+        cells[i][j] = cell;
     }
 
-    public List<Cell> toList() {
-        synchronized (mutex) {
-            List<Cell> list = new LinkedList<>();
-            forEach(list::add);
-            return list;
-        }
+    public synchronized List<Cell> toList() {
+        List<Cell> list = new LinkedList<>();
+        forEach(list::add);
+        return list;
     }
 
-    public Stream<Cell> stream(){
+    public Stream<Cell> stream() {
         return StreamSupport.stream(this.spliterator(), false);
     }
 
-    public void clearCheckers(){
-        synchronized (mutex) {
-            forEach(Cell::removeChecker);
-        }
+    public synchronized void clearCheckers() {
+        forEach(Cell::removeChecker);
     }
 
-    public Cell findCellByCoordinates(int x, int y){
+    public synchronized Cell findCellByCoordinates(int x, int y) {
         return stream().filter(c -> c.contains(x, y)).findFirst().orElse(null);
     }
 
-    public Cell findCellByCoordinatesAndHaveChecker(int x, int y){
+    public synchronized Cell findCellByCoordinatesAndHaveChecker(int x, int y) {
         return stream().filter(c -> c.contains(x, y) && c.isChecker()).findFirst().orElse(null);
     }
 
-    public Checker findCheckerByCoords(final int x, final int y){
+    public synchronized Checker findCheckerByCoords(final int x, final int y) {
         Optional<Cell> cell = stream().filter(c -> c.contains(x, y)).findFirst();
         return cell.map(Cell::getChecker).orElse(null);
     }
 
-    public Checker findCheckerById(int id){
+    public synchronized Checker findCheckerById(int id) {
         Optional<Cell> cell = stream().filter(c -> c.getId() == id).findFirst();
         return cell.map(Cell::getChecker).orElse(null);
     }

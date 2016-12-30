@@ -8,7 +8,7 @@ import com.sun.istack.internal.NotNull;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public abstract class GameObject {
+public abstract class GameObject implements Cloneable {
 
     private int id;
     private Rectangle rectangle;
@@ -105,8 +105,8 @@ public abstract class GameObject {
                 '}';
     }
 
-    public GameObject cloneGameObject() {
-        throw new IllegalStateException("Need override!");
+    public GameObject cloneGameObject() throws CloneNotSupportedException {
+        return (GameObject) this.clone();
     }
 
     public boolean equals(Object o) {
