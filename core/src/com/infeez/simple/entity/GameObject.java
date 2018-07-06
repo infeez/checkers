@@ -3,7 +3,6 @@ package com.infeez.simple.entity;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.infeez.simple.base.GameSpriteBatch;
-import com.sun.istack.internal.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;

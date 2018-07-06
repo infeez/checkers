@@ -5,14 +5,13 @@ import com.infeez.simple.Cells;
 import com.infeez.simple.ResourceSingleton;
 import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.input.PCInputProcessor;
-import com.infeez.simple.utils.BoardCommandUtil;
 import com.infeez.simple.utils.BoardArrayPosition;
+import com.infeez.simple.utils.BoardCommandUtil;
 import com.infeez.simple.utils.Constants.GameEnvTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-
 
 public class Board extends GameObject implements PCInputProcessor {
 
@@ -31,21 +30,27 @@ public class Board extends GameObject implements PCInputProcessor {
     }
 
     public void draw() {
-        cells.forEach(GameObject::draw);
-        cells.forEach(Cell::drawChecker);
-        cells.forEach(Cell::drawCapturedChecker);
+        for (Cell cell : cells) {
+            cell.draw();
+            cell.drawChecker();
+            cell.drawCapturedChecker();
+        }
     }
 
     public void update() {
-        cells.forEach(GameObject::update);
+        for (Cell cell : cells) {
+            cell.update();
+        }
     }
 
     public void dispose() {
-        cells.forEach(GameObject::dispose);
+        for (Cell cell : cells) {
+            cell.dispose();
+        }
     }
 
     public void mouseDrag(int x, int y) {
-        if(cellForDrag != null) {
+        if (cellForDrag != null) {
             cellForDrag.captureChecker(x, y);
             dragged = true;
         } else {
@@ -61,35 +66,35 @@ public class Board extends GameObject implements PCInputProcessor {
             return;
         }
         final GameEnvTypes type = cellForDrag.removeChecker();
-        if(type == null){
+        if (type == null) {
             return;
         }
         Checker newChecker = null;
-        for(Cell cell : cells){
+        for (Cell cell : cells) {
             if (!cell.isChecker() && cell.contains(x, y) && cell.isBlackType()) {
                 newChecker = cell.setChecker(type);
                 break;
-            } else if((cell.isChecker() && cell.contains(x, y)) || (!cell.isBlackType() && cell.contains(x, y))) {
+            } else if ((cell.isChecker() && cell.contains(x, y)) || (!cell.isBlackType() && cell.contains(x, y))) {
                 cellForDrag.setChecker(type);
                 break;
             }
         }
-        if(newChecker != null) {
+        if (newChecker != null) {
             System.out.println("From " + cellForDrag.getBoardStringPosition() + " to " + newChecker.getBoardStringPosition());
         }
         cellForDrag = null;
         dragged = false;
     }
 
-    public void moveChecker(@Nonnull String from, @Nonnull String to){
+    public void moveChecker(@Nonnull String from, @Nonnull String to) {
         BoardArrayPosition chPosFrom = BoardCommandUtil.parseCommand(from);
         BoardArrayPosition chPosTo = BoardCommandUtil.parseCommand(to);
-        if(chPosFrom == null || chPosTo == null){
+        if (chPosFrom == null || chPosTo == null) {
             return;
         }
 
         Checker checkToMove = cells.getCell(chPosFrom).getChecker();
-        if(checkToMove == null){
+        if (checkToMove == null) {
             return;
         }
 
@@ -99,50 +104,36 @@ public class Board extends GameObject implements PCInputProcessor {
         cellTarget.setChecker(checkToMove.getType());
     }
 
-    public void animateMoveChecker(@Nonnull String from, @Nonnull String to){
+    public void animateMoveChecker(@Nonnull String from, @Nonnull String to) {
         animateMoveChecker(BoardCommandUtil.parseCommand(from), BoardCommandUtil.parseCommand(to));
     }
 
-    public void animateMoveChecker(@Nonnull BoardArrayPosition from, @Nonnull BoardArrayPosition to){
+    public void animateMoveChecker(@Nonnull BoardArrayPosition from, @Nonnull BoardArrayPosition to) {
 
     }
 
-    public void startNewGame(){
+    public void startNewGame() {
         cells.startCellsPosition();
-        new Thread(() -> {
-            boolean haveWinner = false;
-            while (!haveWinner) {
-                try {
-                    haveWinner = haveWinner();
-                    if(haveWinner){
-                        startNewGame();
-                    }
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 
-    private boolean haveWinner(){
+    private boolean checkWinner() {
         int whiteCount = 0;
         int blackCount = 0;
-        for(Cell cell : cells){
-            if(cell.getChecker() == null){
+        for (Cell cell : cells) {
+            if (cell.getChecker() == null) {
                 continue;
             }
-            if(cell.getChecker().isBlackType()){
+            if (cell.getChecker().isBlackType()) {
                 blackCount++;
-            } else if(cell.getChecker().isWhiteType()){
+            } else if (cell.getChecker().isWhiteType()) {
                 whiteCount++;
             }
         }
-        if(whiteCount == 0){
+        if (whiteCount == 0) {
             System.out.println("White winner!");
             return true;
         }
-        if(blackCount == 0){
+        if (blackCount == 0) {
             System.out.println("Black winner!");
             return true;
         }

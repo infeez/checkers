@@ -28,8 +28,8 @@ public class BoardCommandUtil {
         yPanel.put('8', 0);
     }
 
-    public static BoardArrayPosition parseCommand(String command){
-        if(command.length() != 2){
+    public static BoardArrayPosition parseCommand(String command) {
+        if (command.length() != 2) {
             throw new IllegalStateException("The command string length must be 2!");
         }
         BoardArrayPosition boardArrayPosition = new BoardArrayPosition();
@@ -38,19 +38,18 @@ public class BoardCommandUtil {
         return boardArrayPosition;
     }
 
-    public static String checkerPositionToCommand(BoardArrayPosition boardArrayPosition){
+    public static String checkerPositionToCommand(BoardArrayPosition boardArrayPosition) {
         final StringBuilder result = new StringBuilder(2);
-        xPanel.entrySet().forEach(entry -> {
-            if(entry.getValue() == boardArrayPosition.getIndexFirst()){
+        for (Map.Entry<Character, Integer> entry : xPanel.entrySet()) {
+            if (entry.getValue() == boardArrayPosition.getIndexFirst()) {
                 result.append(entry.getKey());
             }
-        });
-
-        yPanel.entrySet().forEach(entry -> {
-            if(entry.getValue() == boardArrayPosition.getIndexSecond()){
+        }
+        for (Map.Entry<Character, Integer> entry : yPanel.entrySet()) {
+            if (entry.getValue() == boardArrayPosition.getIndexFirst()) {
                 result.append(entry.getKey());
             }
-        });
+        }
 
         return result.toString();
     }

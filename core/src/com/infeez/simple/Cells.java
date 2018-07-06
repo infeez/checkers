@@ -2,15 +2,14 @@ package com.infeez.simple;
 
 import com.infeez.simple.base.GameSpriteBatch;
 import com.infeez.simple.entity.Cell;
-import com.infeez.simple.entity.Checker;
 import com.infeez.simple.utils.BoardArrayPosition;
 import com.infeez.simple.utils.Constants.GameEnvTypes;
 
 import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 public class Cells implements Iterable<Cell> {
 
@@ -50,64 +49,38 @@ public class Cells implements Iterable<Cell> {
         }
     }
 
-    public Iterator<Cell> iterator() {
-        return toList().iterator();
+    public Cell getCell(@Nonnull BoardArrayPosition boardArrayPosition) {
+        return cells[boardArrayPosition.getIndexFirst()][boardArrayPosition.getIndexSecond()];
     }
 
-    public synchronized void forEach(Consumer<? super Cell> action) {
-        for (Cell[] c1 : cells) {
-            for (Cell c2 : c1) {
-                action.accept(c2);
-            }
-        }
-    }
-
-    public Spliterator<Cell> spliterator() {
-        return toList().spliterator();
-    }
-
-    public synchronized Cell getCell(@Nonnull BoardArrayPosition boardArrayPosition) {
-        return getCell(boardArrayPosition.getIndexFirst(), boardArrayPosition.getIndexSecond());
-    }
-
-    public synchronized Cell getCell(int i, int j) {
-        return cells[i][j];
-    }
-
-    public synchronized void setCell(@Nonnull Cell cell, int i, int j) {
+    public void setCell(@Nonnull Cell cell, int i, int j) {
         cells[i][j] = cell;
     }
 
-    public synchronized List<Cell> toList() {
-        List<Cell> list = new LinkedList<>();
-        forEach(list::add);
-        return list;
+    public void clearCheckers() {
+        for (Cell cell : this) {
+            cell.removeChecker();
+        }
     }
 
-    public Stream<Cell> stream() {
-        return StreamSupport.stream(this.spliterator(), false);
+    public Cell findCellByCoordinatesAndHaveChecker(int x, int y) {
+        for (Cell cell : this) {
+            if (cell.contains(x, y) && cell.isChecker()) {
+                return cell;
+            }
+        }
+        return null;
     }
 
-    public synchronized void clearCheckers() {
-        forEach(Cell::removeChecker);
+    public List<Cell> toList() {
+        List<Cell> result = new ArrayList<>(COUNT_CELL + COUNT_CELL);
+        for (Cell[] a : cells) {
+            Collections.addAll(result, a);
+        }
+        return result;
     }
 
-    public synchronized Cell findCellByCoordinates(int x, int y) {
-        return stream().filter(c -> c.contains(x, y)).findFirst().orElse(null);
+    public Iterator<Cell> iterator() {
+        return toList().iterator();
     }
-
-    public synchronized Cell findCellByCoordinatesAndHaveChecker(int x, int y) {
-        return stream().filter(c -> c.contains(x, y) && c.isChecker()).findFirst().orElse(null);
-    }
-
-    public synchronized Checker findCheckerByCoords(final int x, final int y) {
-        Optional<Cell> cell = stream().filter(c -> c.contains(x, y)).findFirst();
-        return cell.map(Cell::getChecker).orElse(null);
-    }
-
-    public synchronized Checker findCheckerById(int id) {
-        Optional<Cell> cell = stream().filter(c -> c.getId() == id).findFirst();
-        return cell.map(Cell::getChecker).orElse(null);
-    }
-
 }

@@ -7,17 +7,18 @@ import org.slf4j.LoggerFactory;
 
 public class Main extends CheckerApplication {
 
-	private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	private GameScreen gameScreen;
+    private GameScreen gameScreen;
 
-	public void create () {
-		super.create();
-		gameScreen = new GameScreen(this);
-		setScreen(gameScreen);
-	}
+    public void create() {
+        super.create();
+        gameScreen = new GameScreen(this);
+        setScreen(gameScreen);
+    }
 
-	public void dispose () {
-		ResourceSingleton.dispose();
-	}
+    public void dispose() {
+        ResourceSingleton.dispose();
+    }
+
 }

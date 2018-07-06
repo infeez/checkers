@@ -15,7 +15,7 @@ public class GameScreen implements Screen {
     private GameSpriteBatch batch;
     private OrthographicCamera camera;
 
-    public GameScreen(CheckerApplication context){
+    public GameScreen(CheckerApplication context) {
         batch = new GameSpriteBatch();
         camera = new OrthographicCamera();
         camera.setToOrtho(true, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
