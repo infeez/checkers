@@ -1,9 +1,11 @@
 package com.infeez.simple.entity
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.infeez.simple.ResourceSingleton
 import com.infeez.simple.base.GameSpriteBatch
+import com.infeez.simple.game.model.PieceKind
 import com.infeez.simple.utils.BoardArrayPosition
 import com.infeez.simple.utils.BoardCommandUtil
 import com.infeez.simple.utils.BoardConfig
@@ -45,8 +47,8 @@ class Cell(
 
     fun isChecker(): Boolean = checker != null
 
-    fun setChecker(type: GameEnvTypes): Checker {
-        checker = Checker(boardPosition, x, y, type, batch)
+    fun setChecker(type: GameEnvTypes, kind: PieceKind = PieceKind.MAN): Checker {
+        checker = Checker(boardPosition, x, y, type, kind, batch)
         return checker ?: error("Checker was not created.")
     }
 
@@ -68,6 +70,18 @@ class Cell(
     fun drawCapturedChecker() {
         val currentCapturedChecker = capturedChecker ?: return
         batch?.draw(currentCapturedChecker)
+    }
+
+    fun drawHighlight() {
+        val currentBatch = batch ?: return
+        if (Gdx.files == null) {
+            return
+        }
+
+        val oldColor = Color(currentBatch.color)
+        currentBatch.setColor(0.15f, 0.75f, 0.35f, 0.55f)
+        currentBatch.draw(ResourceSingleton.getWhiteCell(), x, y, width, height)
+        currentBatch.setColor(oldColor)
     }
 
     fun captureChecker(x: Float, y: Float) {

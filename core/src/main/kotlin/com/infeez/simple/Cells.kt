@@ -2,6 +2,8 @@ package com.infeez.simple
 
 import com.infeez.simple.base.GameSpriteBatch
 import com.infeez.simple.entity.Cell
+import com.infeez.simple.game.model.PlayerColor
+import com.infeez.simple.game.rules.InitialBoardFactory
 import com.infeez.simple.utils.BoardArrayPosition
 import com.infeez.simple.utils.BoardConfig
 import com.infeez.simple.utils.Constants.GameEnvTypes
@@ -31,13 +33,8 @@ class Cells : Iterable<Cell> {
 
     fun startCellsPosition() {
         clearCheckers()
-        for (cell in this) {
-            val row = cell.boardPosition.indexSecond
-            if (row <= 2 && cell.isBlackType()) {
-                cell.setChecker(GameEnvTypes.BLACK)
-            } else if (row >= 5 && cell.isBlackType()) {
-                cell.setChecker(GameEnvTypes.WHITE)
-            }
+        for ((position, piece) in InitialBoardFactory.russianCheckers().pieces) {
+            getCell(BoardArrayPosition(position.col, position.row)).setChecker(piece.color.toGameEnvType(), piece.kind)
         }
     }
 
@@ -89,4 +86,11 @@ class Cells : Iterable<Cell> {
     }
 
     override fun iterator(): Iterator<Cell> = toList().iterator()
+
+    private fun PlayerColor.toGameEnvType(): GameEnvTypes {
+        return when (this) {
+            PlayerColor.WHITE -> GameEnvTypes.WHITE
+            PlayerColor.BLACK -> GameEnvTypes.BLACK
+        }
+    }
 }

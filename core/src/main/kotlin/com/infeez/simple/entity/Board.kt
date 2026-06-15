@@ -1,19 +1,33 @@
 package com.infeez.simple.entity
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.infeez.simple.Cells
 import com.infeez.simple.ResourceSingleton
 import com.infeez.simple.base.GameSpriteBatch
+import com.infeez.simple.game.model.BoardPosition
+import com.infeez.simple.game.model.GameStatus
+import com.infeez.simple.game.model.InvalidMoveReason
+import com.infeez.simple.game.model.Move
+import com.infeez.simple.game.model.MoveResult
+import com.infeez.simple.game.model.MoveType
+import com.infeez.simple.game.model.Piece
+import com.infeez.simple.game.model.PieceKind
+import com.infeez.simple.game.model.PlayerColor
+import com.infeez.simple.game.rules.CheckersRules
+import com.infeez.simple.game.rules.RussianCheckersRules
 import com.infeez.simple.input.PCInputProcessor
+import com.infeez.simple.render.BoardRenderMapper
 import com.infeez.simple.state.CheckerColor
 import com.infeez.simple.state.CheckerState
-import com.infeez.simple.state.GameState
-import com.infeez.simple.state.toCheckerColor
-import com.infeez.simple.state.toGameEnvType
 import com.infeez.simple.utils.BoardArrayPosition
 import com.infeez.simple.utils.BoardCommandUtil
 import com.infeez.simple.utils.BoardConfig
 import com.infeez.simple.utils.Constants.GameEnvTypes
+import com.infeez.simple.game.model.BoardState as DomainBoardState
+import com.infeez.simple.game.model.GameState as DomainGameState
+import com.infeez.simple.state.GameState as SerializableGameState
 
 class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     ResourceSingleton.getUniqueId(),
@@ -24,11 +38,18 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     spriteBatch,
 ), PCInputProcessor {
     internal val cells = Cells()
+    private val rules: CheckersRules = RussianCheckersRules()
+    private val renderMapper = BoardRenderMapper()
     private var dragged = false
     private var cellForDrag: Cell? = null
     private var activePointerId: Int? = null
-    private var currentTurn: CheckerColor? = CheckerColor.WHITE
-    private var moveNumber = 0
+    private var gameState: DomainGameState = rules.createInitialState()
+    private var legacyMoveNumberOffset = 0
+    private var selectedPosition: BoardPosition? = null
+    private var availableMovesForSelectedPiece: List<Move> = emptyList()
+    private var lastDebugMessage: String? = null
+    private var hudFont: BitmapFont? = null
+    private var resetButtonPressed = false
 
     fun create() {
         cells.createBoard(batch)
@@ -38,12 +59,21 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
         for (cell in cells) {
             cell.draw()
         }
+        val highlightedTargets = availableMovesForSelectedPiece.map { move -> move.to }.toSet()
+        for (cell in cells) {
+            if (cell.domainPosition() in highlightedTargets) {
+                cell.drawHighlight()
+            }
+        }
         for (cell in cells) {
             cell.drawChecker()
         }
         for (cell in cells) {
             cell.drawCapturedChecker()
         }
+        drawKingMarkers()
+        drawHud()
+        drawResetButton()
     }
 
     override fun update() {
@@ -56,16 +86,49 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
         for (cell in cells) {
             cell.dispose()
         }
+        hudFont?.dispose()
+        hudFont = null
     }
 
     override fun mouseDown(x: Float, y: Float, pointer: Int, mouseButton: Int): Boolean {
         if (activePointerId != null) {
             return false
         }
+        if (isResetButtonHit(x, y)) {
+            activePointerId = pointer
+            resetButtonPressed = true
+            return true
+        }
+        if (gameState.status != GameStatus.InProgress) {
+            logDebug("Game is already finished.")
+            return false
+        }
 
         val selectedCell = cells.findCellByCoordinatesAndHaveChecker(x, y) ?: return false
+        val position = selectedCell.domainPosition()
+        val piece = gameState.board.pieceAt(position) ?: return false
+        if (piece.color != gameState.currentTurn) {
+            logDebug("${piece.color.displayName()} piece cannot move on ${gameState.currentTurn.displayName()} turn.")
+            return false
+        }
+
+        val forcedPiece = gameState.forcedPiece
+        if (forcedPiece != null && position != forcedPiece) {
+            logDebug("Continue capture with ${forcedPiece.toDisplayString()}.")
+            return false
+        }
+
+        val legalMovesForPiece = rules.legalMovesForPiece(gameState, position)
+        val captureAvailable = rules.legalMoves(gameState).any { move -> move.type == MoveType.CAPTURE }
+        if (captureAvailable && legalMovesForPiece.isEmpty()) {
+            logDebug("Capture is mandatory.")
+            return false
+        }
+
         activePointerId = pointer
         cellForDrag = selectedCell
+        selectedPosition = position
+        availableMovesForSelectedPiece = legalMovesForPiece
         dragged = false
         return true
     }
@@ -73,6 +136,9 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     override fun mouseDrag(x: Float, y: Float, pointer: Int): Boolean {
         if (activePointerId != pointer) {
             return false
+        }
+        if (resetButtonPressed) {
+            return true
         }
 
         val dragCell = cellForDrag
@@ -91,6 +157,15 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
         if (activePointerId != pointer) {
             return false
         }
+        if (resetButtonPressed) {
+            val shouldReset = isResetButtonHit(x, y)
+            resetDrag()
+            if (shouldReset) {
+                startNewGame()
+                logDebug("New game started.")
+            }
+            return shouldReset
+        }
 
         val sourceCell = cellForDrag
         if (!dragged || sourceCell == null) {
@@ -98,27 +173,35 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
             return false
         }
 
-        val type = sourceCell.removeChecker()
-        if (type == null) {
-            resetDrag()
+        val targetCell = cells.findCellByCoordinates(x, y)
+        val targetPosition = targetCell?.domainPosition()
+        if (targetPosition == null) {
+            cancelActiveDrag()
+            logDebug("Move target is outside the board.")
             return false
         }
 
-        val targetCell = cells.findCellByCoordinates(x, y)
-        val newChecker = if (targetCell != null && !targetCell.isChecker() && targetCell.isBlackType()) {
-            targetCell.setChecker(type)
-        } else {
-            sourceCell.setChecker(type)
-            null
+        val selectedMove = availableMovesForSelectedPiece.firstOrNull { move -> move.to == targetPosition }
+        if (selectedMove == null) {
+            cancelActiveDrag()
+            logDebug("Illegal move to ${targetPosition.toDisplayString()}.")
+            return false
         }
 
-        if (newChecker != null) {
-            moveNumber++
-            currentTurn = currentTurn?.opposite()
-            println("From ${sourceCell.boardStringPosition} to ${newChecker.boardStringPosition}")
+        return when (val result = rules.applyMove(gameState, selectedMove)) {
+            is MoveResult.Success -> {
+                gameState = result.state
+                syncCellsFromGameState()
+                resetDrag()
+                logAppliedMove(result.appliedMove.move)
+                true
+            }
+            is MoveResult.Invalid -> {
+                cancelActiveDrag()
+                logDebug("Invalid move: ${result.reason}.")
+                false
+            }
         }
-        resetDrag()
-        return newChecker != null
     }
 
     override fun touchCancelled(x: Float, y: Float, pointer: Int, mouseButton: Int): Boolean {
@@ -133,18 +216,21 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     fun moveChecker(from: String, to: String) {
         val chPosFrom = BoardCommandUtil.parseCommand(from)
         val chPosTo = BoardCommandUtil.parseCommand(to)
+        val source = chPosFrom.toDomainPosition()
+        val target = chPosTo.toDomainPosition()
 
-        val sourceCell = cells.getCell(chPosFrom)
-        val checkerToMove = sourceCell.checker ?: return
-        val targetCell = cells.getCell(chPosTo)
-        if (targetCell.isChecker() || !targetCell.isBlackType()) {
-            return
+        val move = rules.legalMovesForPiece(gameState, source)
+            .firstOrNull { legalMove -> legalMove.to == target }
+            ?: return
+
+        when (val result = rules.applyMove(gameState, move)) {
+            is MoveResult.Success -> {
+                gameState = result.state
+                syncCellsFromGameState()
+                logAppliedMove(move)
+            }
+            is MoveResult.Invalid -> logDebug("Invalid move: ${result.reason}.")
         }
-
-        sourceCell.removeChecker()
-        targetCell.setChecker(checkerToMove.type)
-        moveNumber++
-        currentTurn = currentTurn?.opposite()
     }
 
     fun animateMoveChecker(from: String, to: String) {
@@ -155,34 +241,36 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     }
 
     fun startNewGame() {
-        cells.startCellsPosition()
-        currentTurn = CheckerColor.WHITE
-        moveNumber = 0
+        gameState = rules.createInitialState()
+        legacyMoveNumberOffset = 0
+        resetDrag()
+        syncCellsFromGameState()
     }
 
-    fun toGameState(): GameState {
-        val checkerStates = cells
-            .mapNotNull { cell ->
-                val checker = cell.checker ?: return@mapNotNull null
-                val command = BoardCommandUtil.checkerPositionToCommand(cell.boardPosition)
+    fun toGameState(): SerializableGameState {
+        val checkerStates = gameState.board.pieces.entries
+            .sortedWith(compareBy({ entry -> entry.key.row }, { entry -> entry.key.col }))
+            .map { (position, piece) ->
+                val command = position.toDisplayString()
                 CheckerState(
-                    id = "${checker.type.name.lowercase()}-$command",
-                    color = checker.type.toCheckerColor(),
+                    id = "${piece.color.name.lowercase()}-$command",
+                    color = piece.color.toCheckerColor(),
                     position = BoardArrayPosition(
-                        cell.boardPosition.indexFirst,
-                        cell.boardPosition.indexSecond,
+                        position.col,
+                        position.row,
                     ),
+                    isKing = piece.kind == PieceKind.KING,
                 )
             }
 
-        return GameState(
+        return SerializableGameState(
             board = checkerStates,
-            currentTurn = currentTurn,
-            moveNumber = moveNumber,
+            currentTurn = gameState.currentTurn.toCheckerColor(),
+            moveNumber = legacyMoveNumberOffset + gameState.moveHistory.size,
         )
     }
 
-    fun tryRestoreGameState(state: GameState): Boolean {
+    fun tryRestoreGameState(state: SerializableGameState): Boolean {
         return runCatching {
             restoreGameState(state)
         }.isSuccess
@@ -194,18 +282,13 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     }
 
     fun checkWinner(): Winner {
-        var whiteCount = 0
-        var blackCount = 0
-        for (cell in cells) {
-            when {
-                cell.checker?.isBlackType() == true -> blackCount++
-                cell.checker?.isWhiteType() == true -> whiteCount++
-            }
-        }
+        val whiteCount = gameState.board.positionsOf(PlayerColor.WHITE).size
+        val blackCount = gameState.board.positionsOf(PlayerColor.BLACK).size
 
         return when {
             whiteCount == 0 && blackCount > 0 -> Winner.BLACK
             blackCount == 0 && whiteCount > 0 -> Winner.WHITE
+            gameState.status is GameStatus.Winner -> (gameState.status as GameStatus.Winner).color.toWinner()
             else -> Winner.NONE
         }
     }
@@ -216,35 +299,192 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
         activePointerId = null
         cellForDrag = null
         dragged = false
+        selectedPosition = null
+        availableMovesForSelectedPiece = emptyList()
+        resetButtonPressed = false
     }
 
-    private fun restoreGameState(state: GameState) {
-        val occupiedPositions = HashSet<BoardArrayPosition>()
+    private fun restoreGameState(state: SerializableGameState) {
+        require(state.moveNumber >= 0) {
+            "Move number must not be negative."
+        }
+
+        val occupiedPositions = HashSet<BoardPosition>()
+        val pieces = mutableMapOf<BoardPosition, Piece>()
         for (checkerState in state.board) {
-            require(occupiedPositions.add(checkerState.position)) {
+            val position = checkerState.position.toDomainPosition()
+            require(occupiedPositions.add(position)) {
                 "Duplicate checker position ${checkerState.position}."
             }
-            require(cells.getCell(checkerState.position).isBlackType()) {
+            require(position.isDarkSquare()) {
                 "Checker must be placed on a black cell."
             }
+            pieces[position] = Piece(
+                color = checkerState.color.toPlayerColor(),
+                kind = if (checkerState.isKing) PieceKind.KING else PieceKind.MAN,
+            )
         }
 
-        cells.clearCheckers()
-        for (checkerState in state.board) {
-            cells.getCell(checkerState.position).setChecker(checkerState.color.toGameEnvType())
-        }
-        currentTurn = state.currentTurn
-        moveNumber = state.moveNumber
+        val restoredState = DomainGameState(
+            board = DomainBoardState(pieces),
+            currentTurn = state.currentTurn?.toPlayerColor() ?: PlayerColor.WHITE,
+        )
+
+        gameState = restoredState
+        legacyMoveNumberOffset = state.moveNumber
+        resetDrag()
+        syncCellsFromGameState()
     }
 
-    private fun CheckerColor.opposite(): CheckerColor {
-        return when (this) {
-            CheckerColor.WHITE -> CheckerColor.BLACK
-            CheckerColor.BLACK -> CheckerColor.WHITE
+    private fun syncCellsFromGameState() {
+        cells.clearCheckers()
+        for (piece in renderMapper.toRenderablePieces(gameState)) {
+            val position = BoardArrayPosition(piece.position.col, piece.position.row)
+            cells.getCell(position).setChecker(piece.color.toGameEnvType(), piece.kind)
         }
+    }
+
+    private fun drawKingMarkers() {
+        val currentBatch = batch ?: return
+        val font = getHudFont() ?: return
+        font.setColor(1f, 0.84f, 0f, 1f)
+        for (cell in cells) {
+            if (cell.checker?.kind == PieceKind.KING) {
+                font.draw(currentBatch, "K", cell.x + 19f, cell.y + 16f)
+            }
+        }
+    }
+
+    private fun drawHud() {
+        val currentBatch = batch ?: return
+        val font = getHudFont() ?: return
+        font.setColor(1f, 1f, 1f, 1f)
+        font.draw(currentBatch, hudText(), 6f, 16f)
+    }
+
+    private fun drawResetButton() {
+        val currentBatch = batch ?: return
+        val font = getHudFont() ?: return
+        if (Gdx.files == null) {
+            return
+        }
+
+        val oldColor = Color(currentBatch.color)
+        currentBatch.setColor(0.08f, 0.09f, 0.10f, 0.88f)
+        currentBatch.draw(
+            ResourceSingleton.getWhiteCell(),
+            RESET_BUTTON_X,
+            RESET_BUTTON_Y,
+            RESET_BUTTON_WIDTH,
+            RESET_BUTTON_HEIGHT,
+        )
+        currentBatch.setColor(oldColor)
+
+        font.setColor(1f, 1f, 1f, 1f)
+        font.draw(currentBatch, RESET_BUTTON_LABEL, RESET_BUTTON_X + 16f, RESET_BUTTON_Y + 8f)
+    }
+
+    private fun getHudFont(): BitmapFont? {
+        if (Gdx.files == null) {
+            return null
+        }
+        return hudFont ?: BitmapFont(true).also { font ->
+            font.data.setScale(0.85f)
+            hudFont = font
+        }
+    }
+
+    private fun hudText(): String {
+        val status = gameState.status
+        val messageParts = mutableListOf<String>()
+        if (status is GameStatus.Winner) {
+            messageParts += "${status.color.displayName()} wins"
+            messageParts += status.reason.name.lowercase().replace('_', ' ')
+        } else {
+            messageParts += "${gameState.currentTurn.displayName()} to move"
+            when {
+                gameState.forcedPiece != null -> messageParts += "Continue capture"
+                rules.legalMoves(gameState).any { move -> move.type == MoveType.CAPTURE } -> {
+                    messageParts += "Capture is mandatory"
+                }
+            }
+        }
+        lastDebugMessage?.let { messageParts += it }
+        return messageParts.joinToString(" | ")
+    }
+
+    private fun logAppliedMove(move: Move) {
+        val separator = if (move.type == MoveType.CAPTURE) ":" else "-"
+        logDebug("${move.from.toDisplayString()}$separator${move.to.toDisplayString()}")
+    }
+
+    private fun logDebug(message: String) {
+        lastDebugMessage = message
+        if (Gdx.app != null) {
+            Gdx.app.log("Checkers", message)
+        } else {
+            println(message)
+        }
+    }
+
+    private fun isResetButtonHit(x: Float, y: Float): Boolean {
+        return x >= RESET_BUTTON_X &&
+            x <= RESET_BUTTON_X + RESET_BUTTON_WIDTH &&
+            y >= RESET_BUTTON_Y &&
+            y <= RESET_BUTTON_Y + RESET_BUTTON_HEIGHT
+    }
+
+    private fun BoardArrayPosition.toDomainPosition(): BoardPosition {
+        return BoardPosition(indexFirst, indexSecond)
+    }
+
+    private fun Cell.domainPosition(): BoardPosition {
+        return boardPosition.toDomainPosition()
+    }
+
+    private fun BoardPosition.toDisplayString(): String {
+        return BoardCommandUtil.checkerPositionToCommand(BoardArrayPosition(col, row))
+    }
+
+    private fun PlayerColor.toCheckerColor(): CheckerColor {
+        return when (this) {
+            PlayerColor.WHITE -> CheckerColor.WHITE
+            PlayerColor.BLACK -> CheckerColor.BLACK
+        }
+    }
+
+    private fun CheckerColor.toPlayerColor(): PlayerColor {
+        return when (this) {
+            CheckerColor.WHITE -> PlayerColor.WHITE
+            CheckerColor.BLACK -> PlayerColor.BLACK
+        }
+    }
+
+    private fun PlayerColor.toGameEnvType(): GameEnvTypes {
+        return when (this) {
+            PlayerColor.WHITE -> GameEnvTypes.WHITE
+            PlayerColor.BLACK -> GameEnvTypes.BLACK
+        }
+    }
+
+    private fun PlayerColor.toWinner(): Winner {
+        return when (this) {
+            PlayerColor.WHITE -> Winner.WHITE
+            PlayerColor.BLACK -> Winner.BLACK
+        }
+    }
+
+    private fun PlayerColor.displayName(): String {
+        return name.lowercase().replaceFirstChar { char -> char.uppercase() }
     }
 
     companion object {
+        private const val RESET_BUTTON_LABEL = "Reset"
+        private const val RESET_BUTTON_WIDTH = 76f
+        private const val RESET_BUTTON_HEIGHT = 28f
+        private const val RESET_BUTTON_X = 6f
+        private const val RESET_BUTTON_Y = 22f
+
         private fun graphicsWidth(): Float {
             return (Gdx.graphics?.width ?: BoardConfig.BOARD_PIXEL_SIZE).toFloat()
         }

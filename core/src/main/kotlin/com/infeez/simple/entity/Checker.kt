@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.infeez.simple.ResourceSingleton
 import com.infeez.simple.base.GameSpriteBatch
+import com.infeez.simple.game.model.PieceKind
 import com.infeez.simple.utils.BoardArrayPosition
 import com.infeez.simple.utils.BoardCommandUtil
 import com.infeez.simple.utils.BoardConfig
@@ -14,6 +15,7 @@ class Checker(
     x: Float,
     y: Float,
     val type: GameEnvTypes,
+    val kind: PieceKind,
     batch: GameSpriteBatch?,
 ) : GameObject(
     ResourceSingleton.getUniqueId(),
