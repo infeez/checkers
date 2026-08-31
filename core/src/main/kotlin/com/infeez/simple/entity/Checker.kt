@@ -11,7 +11,6 @@ import com.infeez.simple.utils.BoardConfig
 import com.infeez.simple.utils.Constants.GameEnvTypes
 
 class Checker(
-    boardArrayPosition: BoardArrayPosition,
     x: Float,
     y: Float,
     val type: GameEnvTypes,
@@ -25,22 +24,9 @@ class Checker(
     BoardConfig.CELL_SIZE,
     batch,
 ) {
-    private val arrayPosI = boardArrayPosition.indexFirst
-    private val arrayPosJ = boardArrayPosition.indexSecond
-
     init {
         textureRegionFor(type)?.let(::setTextureRegion)
     }
-
-    val boardStringPosition: String
-        get() = BoardCommandUtil.checkerPositionToCommand(boardPosition)
-
-    val boardPosition: BoardArrayPosition
-        get() = BoardArrayPosition(arrayPosI, arrayPosJ)
-
-    fun isBlackType(): Boolean = type == GameEnvTypes.BLACK
-
-    fun isWhiteType(): Boolean = type == GameEnvTypes.WHITE
 
     private fun textureRegionFor(type: GameEnvTypes): TextureRegion? {
         if (Gdx.files == null) {

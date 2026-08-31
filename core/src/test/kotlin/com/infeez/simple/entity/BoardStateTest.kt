@@ -61,9 +61,9 @@ class BoardStateTest {
     fun mouseUp_outsideBoard_returnsCheckerToSourceCell() {
         val board = createStartedBoard()
 
-        assertTrue(board.mouseDown(25f, 375f, pointer = 0, mouseButton = 0))
-        assertTrue(board.mouseDrag(125f, 275f, pointer = 0))
-        assertFalse(board.mouseUp(500f, 500f, pointer = 0, mouseButton = 0))
+        assertTrue(board.mouseDown(50f, 750f, pointer = 0, mouseButton = 0))
+        assertTrue(board.mouseDrag(250f, 550f, pointer = 0))
+        assertFalse(board.mouseUp(900f, 900f, pointer = 0, mouseButton = 0))
 
         assertEquals(GameEnvTypes.WHITE, board.getCell("a1").checker?.type)
     }
@@ -72,11 +72,11 @@ class BoardStateTest {
     fun secondPointer_doesNotStealActiveDrag() {
         val board = createStartedBoard()
 
-        assertTrue(board.mouseDown(25f, 375f, pointer = 0, mouseButton = 0))
-        assertFalse(board.mouseDown(75f, 325f, pointer = 1, mouseButton = 0))
-        assertFalse(board.mouseDrag(125f, 275f, pointer = 1))
-        assertTrue(board.mouseDrag(125f, 275f, pointer = 0))
-        assertTrue(board.touchCancelled(125f, 275f, pointer = 0, mouseButton = 0))
+        assertTrue(board.mouseDown(50f, 750f, pointer = 0, mouseButton = 0))
+        assertFalse(board.mouseDown(150f, 650f, pointer = 1, mouseButton = 0))
+        assertFalse(board.mouseDrag(250f, 550f, pointer = 1))
+        assertTrue(board.mouseDrag(250f, 550f, pointer = 0))
+        assertTrue(board.touchCancelled(250f, 550f, pointer = 0, mouseButton = 0))
 
         assertEquals(GameEnvTypes.WHITE, board.getCell("a1").checker?.type)
     }

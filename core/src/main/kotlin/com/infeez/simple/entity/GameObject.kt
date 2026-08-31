@@ -41,14 +41,6 @@ abstract class GameObject(
         bounds.y = y
     }
 
-    fun setWidth(width: Float) {
-        bounds.width = width
-    }
-
-    fun setHeight(height: Float) {
-        bounds.height = height
-    }
-
     fun setRectangle(newRectangle: Rectangle) {
         bounds.set(newRectangle)
     }
@@ -73,8 +65,6 @@ abstract class GameObject(
 
     open fun dispose() {
     }
-
-    fun cloneGameObject(): GameObject = clone() as GameObject
 
     override fun toString(): String = "GameObject{id=$id}"
 

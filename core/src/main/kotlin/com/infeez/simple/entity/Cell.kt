@@ -35,20 +35,15 @@ class Cell(
         textureRegionFor(type)?.let(::setTextureRegion)
     }
 
-    val boardStringPosition: String
-        get() = BoardCommandUtil.checkerPositionToCommand(boardPosition)
-
     val boardPosition: BoardArrayPosition
         get() = BoardArrayPosition(arrayPosI, arrayPosJ)
 
     fun isBlackType(): Boolean = type == GameEnvTypes.BLACK
 
-    fun isWhiteType(): Boolean = type == GameEnvTypes.WHITE
-
     fun isChecker(): Boolean = checker != null
 
     fun setChecker(type: GameEnvTypes, kind: PieceKind = PieceKind.MAN): Checker {
-        checker = Checker(boardPosition, x, y, type, kind, batch)
+        checker = Checker(x, y, type, kind, batch)
         return checker ?: error("Checker was not created.")
     }
 

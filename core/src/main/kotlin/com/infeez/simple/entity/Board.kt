@@ -6,9 +6,15 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.infeez.simple.Cells
 import com.infeez.simple.ResourceSingleton
 import com.infeez.simple.base.GameSpriteBatch
+import com.infeez.simple.game.ai.AiMoveResult
+import com.infeez.simple.game.ai.CheckersAiFactory
+import com.infeez.simple.game.ai.RandomAi
+import com.infeez.simple.game.controller.DefaultGameConfig
+import com.infeez.simple.game.controller.GameController
+import com.infeez.simple.game.controller.GameMode
+import com.infeez.simple.game.controller.TurnState
 import com.infeez.simple.game.model.BoardPosition
 import com.infeez.simple.game.model.GameStatus
-import com.infeez.simple.game.model.InvalidMoveReason
 import com.infeez.simple.game.model.Move
 import com.infeez.simple.game.model.MoveResult
 import com.infeez.simple.game.model.MoveType
@@ -25,6 +31,8 @@ import com.infeez.simple.utils.BoardArrayPosition
 import com.infeez.simple.utils.BoardCommandUtil
 import com.infeez.simple.utils.BoardConfig
 import com.infeez.simple.utils.Constants.GameEnvTypes
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import com.infeez.simple.game.model.BoardState as DomainBoardState
 import com.infeez.simple.game.model.GameState as DomainGameState
 import com.infeez.simple.state.GameState as SerializableGameState
@@ -40,16 +48,33 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     internal val cells = Cells()
     private val rules: CheckersRules = RussianCheckersRules()
     private val renderMapper = BoardRenderMapper()
+    private val gameConfig = DefaultGameConfig.value
+    private val aiFactory = CheckersAiFactory(rules)
+    private val ai = aiFactory.create(gameConfig.aiDifficulty)
+    private val fallbackAi = RandomAi(rules)
+    private val gameController = GameController(rules, ai, gameConfig)
+    private val aiExecutor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "checkers-ai").apply {
+            isDaemon = true
+        }
+    }
     private var dragged = false
     private var cellForDrag: Cell? = null
     private var activePointerId: Int? = null
-    private var gameState: DomainGameState = rules.createInitialState()
     private var legacyMoveNumberOffset = 0
     private var selectedPosition: BoardPosition? = null
     private var availableMovesForSelectedPiece: List<Move> = emptyList()
     private var lastDebugMessage: String? = null
     private var hudFont: BitmapFont? = null
     private var resetButtonPressed = false
+    private var lastAiMove: Move? = null
+    @Volatile
+    private var aiCalculationRunning = false
+    @Volatile
+    private var aiTaskVersion = 0
+
+    private val gameState: DomainGameState
+        get() = gameController.state
 
     fun create() {
         cells.createBoard(batch)
@@ -88,6 +113,7 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
         }
         hudFont?.dispose()
         hudFont = null
+        aiExecutor.shutdownNow()
     }
 
     override fun mouseDown(x: Float, y: Float, pointer: Int, mouseButton: Int): Boolean {
@@ -101,6 +127,10 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
         }
         if (gameState.status != GameStatus.InProgress) {
             logDebug("Game is already finished.")
+            return false
+        }
+        if (!gameController.isHumanTurn()) {
+            logDebug(if (gameController.isAiTurn()) "AI is thinking." else "Input is locked.")
             return false
         }
 
@@ -188,12 +218,13 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
             return false
         }
 
-        return when (val result = rules.applyMove(gameState, selectedMove)) {
+        return when (val result = gameController.makeHumanMove(selectedMove)) {
             is MoveResult.Success -> {
-                gameState = result.state
+                markGameStateChanged()
                 syncCellsFromGameState()
                 resetDrag()
                 logAppliedMove(result.appliedMove.move)
+                scheduleAiMoveIfNeeded()
                 true
             }
             is MoveResult.Invalid -> {
@@ -223,9 +254,9 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
             .firstOrNull { legalMove -> legalMove.to == target }
             ?: return
 
-        when (val result = rules.applyMove(gameState, move)) {
+        when (val result = gameController.makeHumanMove(move)) {
             is MoveResult.Success -> {
-                gameState = result.state
+                markGameStateChanged()
                 syncCellsFromGameState()
                 logAppliedMove(move)
             }
@@ -241,10 +272,13 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
     }
 
     fun startNewGame() {
-        gameState = rules.createInitialState()
+        gameController.reset()
         legacyMoveNumberOffset = 0
+        markGameStateChanged()
+        lastAiMove = null
         resetDrag()
         syncCellsFromGameState()
+        scheduleAiMoveIfNeeded()
     }
 
     fun toGameState(): SerializableGameState {
@@ -330,10 +364,13 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
             currentTurn = state.currentTurn?.toPlayerColor() ?: PlayerColor.WHITE,
         )
 
-        gameState = restoredState
+        gameController.replaceState(restoredState)
         legacyMoveNumberOffset = state.moveNumber
+        markGameStateChanged()
+        lastAiMove = null
         resetDrag()
         syncCellsFromGameState()
+        scheduleAiMoveIfNeeded()
     }
 
     private fun syncCellsFromGameState() {
@@ -342,6 +379,92 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
             val position = BoardArrayPosition(piece.position.col, piece.position.row)
             cells.getCell(position).setChecker(piece.color.toGameEnvType(), piece.kind)
         }
+    }
+
+    private fun scheduleAiMoveIfNeeded() {
+        if (Gdx.app == null || !gameController.isAiTurn() || aiCalculationRunning) {
+            return
+        }
+
+        val request = gameController.createAiMoveRequest() ?: return
+        val taskVersion = aiTaskVersion
+        aiCalculationRunning = true
+        logDebug("AI thinking...")
+
+        aiExecutor.execute {
+            val startedAt = System.currentTimeMillis()
+            val result = runCatching {
+                ai.chooseMove(request)
+            }.getOrElse { error ->
+                println("AI failed: ${error.message}. Falling back to random move.")
+                runCatching {
+                    fallbackAi.chooseMove(request)
+                }.getOrElse {
+                    AiMoveResult(move = null)
+                }
+            }
+            val elapsedMillis = System.currentTimeMillis() - startedAt
+
+            postToRenderThread {
+                applyScheduledAiMove(result, elapsedMillis, taskVersion)
+            }
+        }
+    }
+
+    private fun applyScheduledAiMove(result: AiMoveResult, elapsedMillis: Long, taskVersion: Int) {
+        if (taskVersion != aiTaskVersion) {
+            return
+        }
+
+        aiCalculationRunning = false
+        val applied = applyAiMoveResult(result, allowFallback = true)
+        if (applied is MoveResult.Success) {
+            val move = applied.appliedMove.move
+            lastAiMove = move
+            logDebug(
+                "AI ${gameConfig.aiDifficulty}: ${move.from.toDisplayString()}${
+                    if (move.type == MoveType.CAPTURE) ":" else "-"
+                }${move.to.toDisplayString()}, score=${result.score}, nodes=${result.searchedNodes}, time=${elapsedMillis}ms",
+            )
+            if (gameController.isAiTurn()) {
+                scheduleAiMoveIfNeeded()
+            }
+        }
+    }
+
+    private fun applyAiMoveResult(result: AiMoveResult, allowFallback: Boolean): MoveResult {
+        val applied = gameController.applyAiMoveResult(result)
+        if (applied is MoveResult.Success) {
+            markGameStateChanged()
+            syncCellsFromGameState()
+            return applied
+        }
+
+        if (allowFallback) {
+            val fallbackRequest = gameController.createAiMoveRequest()
+            val fallbackResult = fallbackRequest?.let(fallbackAi::chooseMove)
+            if (fallbackResult != null && fallbackResult.move != null && fallbackResult.move != result.move) {
+                return applyAiMoveResult(fallbackResult, allowFallback = false)
+            }
+        }
+
+        if (applied is MoveResult.Invalid) {
+            logDebug("AI move rejected: ${applied.reason}.")
+        }
+        return applied
+    }
+
+    private fun postToRenderThread(action: () -> Unit) {
+        if (Gdx.app != null) {
+            Gdx.app.postRunnable(action)
+        } else {
+            action()
+        }
+    }
+
+    private fun markGameStateChanged() {
+        aiTaskVersion++
+        aiCalculationRunning = false
     }
 
     private fun drawKingMarkers() {
@@ -401,12 +524,22 @@ class Board(spriteBatch: GameSpriteBatch? = null) : GameObject(
             messageParts += "${status.color.displayName()} wins"
             messageParts += status.reason.name.lowercase().replace('_', ' ')
         } else {
-            messageParts += "${gameState.currentTurn.displayName()} to move"
-            when {
-                gameState.forcedPiece != null -> messageParts += "Continue capture"
-                rules.legalMoves(gameState).any { move -> move.type == MoveType.CAPTURE } -> {
-                    messageParts += "Capture is mandatory"
+            when (gameController.turnState) {
+                TurnState.AI_THINKING -> messageParts += "AI thinking..."
+                TurnState.HUMAN_TURN -> {
+                    messageParts += when (gameConfig.gameMode) {
+                        GameMode.HUMAN_VS_AI -> "${gameConfig.humanSide.displayName()} to move"
+                        GameMode.HUMAN_VS_HUMAN -> "${gameState.currentTurn.displayName()} to move"
+                    }
+                    when {
+                        gameState.forcedPiece != null -> messageParts += "Continue capture"
+                        rules.legalMoves(gameState).any { move -> move.type == MoveType.CAPTURE } -> {
+                            messageParts += "Capture is mandatory"
+                        }
+                    }
                 }
+                TurnState.ANIMATING_MOVE -> messageParts += "Animating move"
+                TurnState.GAME_OVER -> messageParts += "Game over"
             }
         }
         lastDebugMessage?.let { messageParts += it }

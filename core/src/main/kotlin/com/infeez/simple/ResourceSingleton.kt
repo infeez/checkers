@@ -10,7 +10,6 @@ object ResourceSingleton {
     private var cellsTexture: Texture? = null
     private var blackCell: TextureRegion? = null
     private var whiteCell: TextureRegion? = null
-
     private var checkersTexture: Texture? = null
     private var blackChecker: TextureRegion? = null
     private var whiteChecker: TextureRegion? = null

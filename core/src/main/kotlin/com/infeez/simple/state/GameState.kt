@@ -20,17 +20,3 @@ enum class CheckerColor {
     WHITE,
     BLACK,
 }
-
-fun GameEnvTypes.toCheckerColor(): CheckerColor {
-    return when (this) {
-        GameEnvTypes.WHITE -> CheckerColor.WHITE
-        GameEnvTypes.BLACK -> CheckerColor.BLACK
-    }
-}
-
-fun CheckerColor.toGameEnvType(): GameEnvTypes {
-    return when (this) {
-        CheckerColor.WHITE -> GameEnvTypes.WHITE
-        CheckerColor.BLACK -> GameEnvTypes.BLACK
-    }
-}
