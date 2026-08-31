@@ -1,11 +1,11 @@
 [versions]
-kotlin = "2.4.0"
-agp = "9.2.1"
+kotlin = "2.4.10"
+agp = "9.3.2"
 libgdx = "1.14.2"
 junit = "4.13.2"
-androidx-test-core = "1.5.0"
-androidx-test-ext-junit = "1.1.5"
-androidx-test-runner = "1.5.2"
+androidx-test-core = "1.7.0"
+androidx-test-ext-junit = "1.3.0"
+androidx-test-runner = "1.7.0"
 
 [libraries]
 gdx = { module = "com.badlogicgames.gdx:gdx", version.ref = "libgdx" }

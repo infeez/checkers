@@ -64,6 +64,7 @@ nb-configuration.xml
 ## Gradle
 
 .gradle
+.kotlin/
 gradle-app.setting
 build/
 
